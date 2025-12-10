@@ -9,7 +9,7 @@ Zone output requested:
 
 *** Number Density [atoms/cm3] ***
 
-Zone #1: zone_1
+Zone #1: Be
 	Relative Volume: 1
 	Containing mixture: mix_1
 
@@ -36,7 +36,7 @@ b-10 	4.7548e+11
 ====================
 total	1.2388e+23  
 
-Zone #2: zone_2
+Zone #2: W
 	Relative Volume: 1
 	Containing mixture: mix_2
 
@@ -161,8 +161,8 @@ Totals for all zones.
 Number Density [atoms/cm3]
 zone	 shutdown   
 ====================
-1	1.2388e+23  	zone_1 (mix_1)
-2	6.3197e+22  	zone_2 (mix_2)
+1	1.2388e+23  	Be (mix_1)
+2	6.3197e+22  	W (mix_2)
 ====================
 
 
@@ -171,7 +171,7 @@ zone	 shutdown
 
 *** Specific Activity [Bq/cm3] ***
 
-Zone #1: zone_1
+Zone #1: Be
 	Relative Volume: 1
 	Containing mixture: mix_1
 
@@ -190,7 +190,7 @@ be-10 	1.5184e+04
 ====================
 total	2.2755e+12  
 
-Zone #2: zone_2
+Zone #2: W
 	Relative Volume: 1
 	Containing mixture: mix_2
 
@@ -289,8 +289,8 @@ Totals for all zones.
 Specific Activity [Bq/cm3]
 zone	 shutdown   
 ====================
-1	2.2755e+12  	zone_1 (mix_1)
-2	5.3384e+13  	zone_2 (mix_2)
+1	2.2755e+12  	Be (mix_1)
+2	5.3384e+13  	W (mix_2)
 ====================
 
 

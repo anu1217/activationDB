@@ -5,7 +5,6 @@ import argparse
 import yaml
 import pandas as pd
 import sqlite3
-from sympy import symbols, Eq, solve
 
 def open_flux_file(flux_file):
     flux_lines = open(flux_file, 'r').readlines()
@@ -14,22 +13,17 @@ def open_flux_file(flux_file):
 def calc_time_params(active_burn_time, duty_cycle_list, num_pulses):
     t_irr_arr = np.ndarray((len(num_pulses), len(duty_cycle_list)), dtype=float)
     dwell_time_arr = t_irr_arr.copy()
-    dwell_time = symbols('dwell_time')
     pulse_length_list = []
     
     for num_ind, num in enumerate(num_pulses):
         pulse_length = active_burn_time / num
         pulse_length_list.append(pulse_length)
         for duty_cycle_ind, duty_cycle in enumerate(duty_cycle_list):
-            dwell_time_eq = Eq(pulse_length / (pulse_length + dwell_time), duty_cycle) #isolate dwell_time instead of making an equation?
-            dwell_time_sol = solve((dwell_time_eq),(dwell_time))
-            dwell_time_arr[num_ind, duty_cycle_ind] = dwell_time_sol[0]
+            dwell_time = pulse_length * (duty_cycle - 1)
+            dwell_time_arr[num_ind, duty_cycle_ind] = dwell_time
             # The total irradiation time can be calculated once the dwell time has been found
-            t_irr = pulse_length * num + dwell_time_sol[0] * (num - 1)
-            t_irr_arr[num_ind, duty_cycle_ind] = t_irr
-            
-            #print(f"t_irr={t_irr}")
-            #print(f"duty_cycle={duty_cycle}, num={num}, pulse_time = {pulse_length} y, dwell_time = {dwell_time_sol[0]} y")        
+            t_irr = pulse_length * num + dwell_time * (num - 1)
+            t_irr_arr[num_ind, duty_cycle_ind] = t_irr     
     return pulse_length_list, dwell_time_arr, t_irr_arr
              
 def write_out_adf(inputs):
@@ -81,18 +75,21 @@ def calc_avg_flux_mag(total_flux, active_burn_time):
 #     # (on_time * total_flux[0] (one value for now) + off_time * 0 flux) / (on_time + off_time)
 
 def write_sqlite(adf, inputs, norm_flux_array, avg_flux):
-    adf['active_t_irr'] = inputs['active_burn_time']
-    adf['active_t_irr'] = aop.convert_times(adf['active_t_irr'], from_unit='y', to_unit='s')
+    #Add new columns to dataframe
+    adf['active_t_irr_(s)'] = inputs['active_burn_time']
+    adf['active_t_irr_(s)'] = aop.convert_times(adf['active_t_irr_(s)'], from_unit='y', to_unit='s')
     adf['flux_spectrum_shape'] = [norm_flux_array[0]] *  len(adf.index) #dimensions
-    #look into norm flux array dimensions
     adf['avg_flux_mag'] = avg_flux
     adf['run_lbl'] = [list(inputs.keys())[4]] * len(adf.index)
 
+    #Remove some columns:
+    adf.drop(columns=['time', 'time_unit', 'variable', 'var_unit', 'block'], inplace=True)
+
     #Rename some columns:
-    adf['value'] = adf['num_dens']
+    adf.rename(columns={'value':'num_dens_(atoms/cm3)'}, inplace=True)
     
     sqlite_conn = sqlite3.connect('activation_results.db')
-    adf.to_sql('number_densities', sqlite_conn, if_exists='replace')
+    adf.to_sql('number_densities', sqlite_conn, if_exists='replace', method="multi")
 
     try:
         cursor = sqlite_conn.cursor()  

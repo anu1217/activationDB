@@ -3,64 +3,45 @@ import numpy as np
 import openmc
 import argparse
 import yaml
+import pandas as pd
 import sqlite3
+from sympy import symbols, Eq, solve
 
-def open_files():
-    flux_lines = open('/filespace/a/asrajendra/research/activationDB/ref_flux_files/iter_dt_flux', 'r').readlines()
+def open_flux_file(flux_file):
+    flux_lines = open(flux_file, 'r').readlines()
     return flux_lines
 
-def filter_output(inputs):
+def calc_time_params(active_burn_time, duty_cycle_list, num_pulses):
+    t_irr_arr = np.ndarray((len(num_pulses), len(duty_cycle_list)), dtype=float)
+    dwell_time_arr = t_irr_arr.copy()
+    dwell_time = symbols('dwell_time')
+    pulse_length_list = []
+    
+    for num_ind, num in enumerate(num_pulses):
+        pulse_length = active_burn_time / num
+        pulse_length_list.append(pulse_length)
+        for duty_cycle_ind, duty_cycle in enumerate(duty_cycle_list):
+            dwell_time_eq = Eq(pulse_length / (pulse_length + dwell_time), duty_cycle) #isolate dwell_time instead of making an equation?
+            dwell_time_sol = solve((dwell_time_eq),(dwell_time))
+            dwell_time_arr[num_ind, duty_cycle_ind] = dwell_time_sol[0]
+            # The total irradiation time can be calculated once the dwell time has been found
+            t_irr = pulse_length * num + dwell_time_sol[0] * (num - 1)
+            t_irr_arr[num_ind, duty_cycle_ind] = t_irr
+            
+            #print(f"t_irr={t_irr}")
+            #print(f"duty_cycle={duty_cycle}, num={num}, pulse_time = {pulse_length} y, dwell_time = {dwell_time_sol[0]} y")        
+    return pulse_length_list, dwell_time_arr, t_irr_arr
+             
+def write_out_adf(inputs):
     #runs_list = [inputs['runs_100'], inputs['runs_90'], inputs['runs_50'], inputs['runs_25']]
     #start with one dictionary of runs first
     runs_list = [inputs['runs_100']]
-    total_values = []
     for runs_idx, runs in enumerate(runs_list):
         lib = aop.DataLibrary()
         adf = aop.DataLibrary.make_entries(lib, runs)
-        #Be = Zone 1, W = Zone 2
-        for run_idx, run in enumerate(runs):
-            filtered_adf = adf.filter_rows(
-                filter_dict={
-                    "variable" : adf.VARIABLE_ENUM["Number Density"],
-                    "nuclide"  : "total",
-                    "block" : adf.BLOCK_ENUM["Zone"],
-                    "run_lbl" : f"run{run_idx+1}_{inputs['duty_cycles'][runs_idx]}"
-                }
-            )   
-            run_total_values = []
-            for value in filtered_adf['value']:
-                run_total_values.append(value) #make a separate list for all total_values in a run
-            total_values.append(run_total_values)
-    return total_values, len(filtered_adf['block']), adf
+    return adf
 
-def find_child_nuclides(inputs, adf, num_blocks):
-    #start with one dictionary of runs first
-    runs_list = [inputs['runs_100']]
-    for runs_idx, runs in enumerate(runs_list):
-        dict_nuclides = [] #list of nuclide number densities for entire dictionary
-        for run_idx, run in enumerate(runs):
-            run_nuclides = []
-            filtered_adf = adf.filter_rows(
-                filter_dict={
-                    "variable" : adf.VARIABLE_ENUM["Number Density"],
-                    "block" : adf.BLOCK_ENUM["Zone"],
-                    "run_lbl" : f"run{run_idx+1}_{inputs['duty_cycles'][runs_idx]}"
-                }
-            )    
-            for block_num in range(num_blocks):
-                
-                block_filtered_adf = filtered_adf.filter_rows(
-                    filter_dict = {
-                        "block_num" : f"{block_num+1}"
-                    }
-                )
-                individual_block_nuclides = []
-                for nuclide in block_filtered_adf['nuclide']:
-                    individual_block_nuclides.append(nuclide)
-                run_nuclides.append(individual_block_nuclides)        
-            dict_nuclides.append(run_nuclides)
-
-def store_flux_lines(flux_lines):
+def store_flux_lines(flux_lines, num_blocks):
     energy_bins = openmc.mgxs.GROUP_STRUCTURES['VITAMIN-J-175'] 
     bin_widths = []
     for bin_index in range(len(energy_bins) - 1):
@@ -72,43 +53,58 @@ def store_flux_lines(flux_lines):
         if flux_line.strip(): #if the current line is not blank
             all_entries.extend(flux_line.split())
     all_entries = np.array(all_entries, dtype=float)
-    return bin_widths, all_entries
-
-def normalize_flux_spectrum(all_entries, bin_widths, num_blocks):
     flux_array = all_entries.reshape(num_blocks, len(bin_widths))
-    total_flux = np.sum(all_entries)
+    return bin_widths, flux_array
+
+def normalize_flux_spectrum(flux_array, bin_widths, num_blocks): #flux spectrum shape
+    norm_flux_array = flux_array.copy()
+    total_flux = np.sum(flux_array, axis=1) #sum over the bin widths of flux array
 
     for zone_idx in range(num_blocks):
-        flux_array[zone_idx,:] = (flux_array[zone_idx,:] / bin_widths) * (1 / total_flux)  
-    return flux_array
+        norm_flux_array[zone_idx,:] = (norm_flux_array[zone_idx,:] / bin_widths) * (1 / total_flux[zone_idx])  
+    return norm_flux_array, total_flux
 
-# Will pull t_irr and avg flux magnitude once full schedule history is available in output files
+def calc_avg_flux_mag(total_flux, active_burn_time):
+    avg_flux = total_flux[0] / active_burn_time
+    # total_flux[0] = total_flux[...]
+    return avg_flux
 
-# Need to actually insert data into the database... 
-def write_sqlite():
-    database = 'activation_results.db'
-    create_table = 'CREATE TABLE contacts ( \
-	t_irr REAL PRIMARY KEY, \
-	parent_nuc REAL NOT NULL, \
-	child_nuc REAL NOT NULL, \
-	avg_flux_mag REAL NOT NULL UNIQUE, \
-	norm_flux_spectrum REAL NOT NULL UNIQUE \
-    );'
+# def calc_avg_flux_mag(total_flux, num_pulses, pulse_length_list, dwell_time_arr): #avg flux magnitude
+#     #avg = total flux (for each zone) over all energy bins, time-integrated, divided by total irradiation time
+#     # for now, the flux across all zones is assumed to be the same
+#     avg_flux_arr = dwell_time_arr.copy()
+#     for dwell_time_ind, dwell_time in enumerate(dwell_time_arr):
+#         on_time = pulse_length_list[dwell_time_ind] * num_pulses[dwell_time_ind]
+#         off_time = dwell_time * (num_pulses[dwell_time_ind] - 1)
+#         # total_flux[0] = total_flux[...]
+#         avg_flux_arr[dwell_time_ind, :] =  (on_time * total_flux[0] + off_time * 0) / (on_time + off_time)
+#     # (on_time * total_flux[0] (one value for now) + off_time * 0 flux) / (on_time + off_time)
+
+def write_sqlite(adf, inputs, norm_flux_array, avg_flux):
+    adf['active_t_irr'] = inputs['active_burn_time']
+    adf['active_t_irr'] = aop.convert_times(adf['active_t_irr'], from_unit='y', to_unit='s')
+    adf['flux_spectrum_shape'] = [norm_flux_array[0]] *  len(adf.index) #dimensions
+    #look into norm flux array dimensions
+    adf['avg_flux_mag'] = avg_flux
+    adf['run_lbl'] = [list(inputs.keys())[4]] * len(adf.index)
+
+    #Rename some columns:
+    adf['value'] = adf['num_dens']
+    
+    sqlite_conn = sqlite3.connect('activation_results.db')
+    adf.to_sql('number_densities', sqlite_conn, if_exists='replace')
 
     try:
-        with sqlite3.connect(database) as conn:
-            cursor = conn.cursor()
-            cursor.execute(create_table)   
-            conn.commit()
+        cursor = sqlite_conn.cursor()  
+        sqlite_conn.commit()
+        result = cursor.fetchall()
 
-            result = cursor.fetchall()
+        cursor.close()
 
-            cursor.close()
-
-        if conn:
-            conn.close()
-    except sqlite3.OperationalError as e:
-        print(e)        
+        if sqlite_conn:
+            sqlite_conn.close()
+    except sqlite3.OperationalError as error:
+        print(error)        
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -127,14 +123,21 @@ def read_yaml(yaml_arg):
 
 def main():        
     args = parse_args()
-    inputs = read_yaml(args.db_yaml)
+    inputs = read_yaml(args.db_yaml)  
+    flux_file = inputs['flux_file']    
+    active_burn_time = inputs['active_burn_time']
+    duty_cycle_list = inputs['duty_cycles']
+    num_pulses = inputs['pulse_list'] 
 
-    flux_lines = open_files()
-    total_values, num_blocks, adf = filter_output(inputs)
-    find_child_nuclides(inputs, adf, num_blocks)
-    bin_widths, all_entries = store_flux_lines(flux_lines)
-    flux_array = normalize_flux_spectrum(all_entries, bin_widths, num_blocks)
-    write_sqlite()
+    flux_lines = open_flux_file(flux_file)
+    pulse_length_list, dwell_time_arr, t_irr_arr = calc_time_params(active_burn_time, duty_cycle_list, num_pulses)
+    adf = write_out_adf(inputs)
+    num_blocks = adf['block_num'].nunique()
+    bin_widths, flux_array = store_flux_lines(flux_lines, num_blocks)
+    norm_flux_array, total_flux = normalize_flux_spectrum(flux_array, bin_widths, num_blocks)
+    #calc_avg_flux_mag(total_flux, num_pulses, pulse_length_list, dwell_time_arr)
+    avg_flux = calc_avg_flux_mag(total_flux, active_burn_time)
+    write_sqlite(adf, inputs, norm_flux_array, avg_flux)
 
 if __name__ == "__main__":
     main()

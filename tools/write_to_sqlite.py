@@ -78,12 +78,12 @@ def write_sqlite(adf, inputs, norm_flux_array, avg_flux):
     #Add new columns to dataframe
     adf['active_t_irr_(s)'] = inputs['active_burn_time']
     adf['active_t_irr_(s)'] = aop.convert_times(adf['active_t_irr_(s)'], from_unit='y', to_unit='s')
-    adf['flux_spectrum_shape'] = [norm_flux_array[0]] *  len(adf.index) #dimensions
+    adf['flux_spectrum_shape'] = [norm_flux_array[0]] *  len(adf.index)
     adf['avg_flux_mag'] = avg_flux
     adf['run_lbl'] = [list(inputs.keys())[4]] * len(adf.index)
 
     #Remove some columns:
-    adf.drop(columns=['time', 'time_unit', 'variable', 'var_unit', 'block'], inplace=True)
+    adf.drop(columns=['time', 'time_unit', 'variable', 'var_unit', 'block', 'block_num'], inplace=True)
 
     #Rename some columns:
     adf.rename(columns={'value':'num_dens_(atoms/cm3)'}, inplace=True)

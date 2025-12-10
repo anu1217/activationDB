@@ -39,7 +39,7 @@ runs_25 = {
 runs_list = [runs_100, runs_90, runs_50, runs_25]
 
 datasets = []
-for runs in runs_list:
+for runs_idx, runs in enumerate(runs_list):
     lib = aop.DataLibrary()
     adf = aop.DataLibrary.make_entries(lib, runs)
     #Be = Zone 1
@@ -53,17 +53,17 @@ for runs in runs_list:
     )
     values = []
     for value in filtered_adf['value']:
-        values.append(value)
+        values.append(value)    
     datasets.append((pulse_list, values))  
 
-for i, (pulse_list, num_dens) in enumerate(datasets):
-    plt.scatter(pulse_list, num_dens, label=f'{duty_cycles[i]}', s=10)
+# for i, (pulse_list, num_dens) in enumerate(datasets):
+#     plt.scatter(pulse_list, num_dens, label=f'{duty_cycles[i]}', s=10)  
 
-plt.xlabel('# Pulses')
-plt.ylabel('Number Density')
-plt.yscale('log')
-plt.ylim(top=2E+23)
-#plt.title('')
-plt.legend()
-plt.show()
-plt.savefig('ITER_DT.png')
+# plt.xlabel('# Pulses')
+# plt.ylabel('Number Density')
+# plt.yscale('log')
+# plt.ylim(top=2E+23)
+# #plt.title('')
+# plt.legend()
+# plt.show()
+# plt.savefig('/filespace/a/asrajendra/research/activationDB/comp_res_iter_dir/iter/ITER_DT.png')

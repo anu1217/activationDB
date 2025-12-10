@@ -4,11 +4,12 @@ Schedule 'my_schedule':
 Zone output requested:
 	Response Units: Bq /cm3
 	Number Density [atoms/cm3]
+	Specific Activity [Bq/cm3]
 
 
 *** Number Density [atoms/cm3] ***
 
-Zone #1: zone_1
+Zone #1: Be
 	Relative Volume: 1
 	Containing mixture: mix_1
 
@@ -35,7 +36,7 @@ b-10 	8.2965e+11
 ====================
 total	1.2388e+23  
 
-Zone #2: zone_2
+Zone #2: W
 	Relative Volume: 1
 	Containing mixture: mix_2
 
@@ -160,8 +161,136 @@ Totals for all zones.
 Number Density [atoms/cm3]
 zone	 shutdown   
 ====================
-1	1.2388e+23  	zone_1 (mix_1)
-2	6.3197e+22  	zone_2 (mix_2)
+1	1.2388e+23  	Be (mix_1)
+2	6.3197e+22  	W (mix_2)
+====================
+
+
+
+
+
+*** Specific Activity [Bq/cm3] ***
+
+Zone #1: Be
+	Relative Volume: 1
+	Containing mixture: mix_1
+
+Total (All constituents) 
+	COMPACTED
+	Volume Fraction: 1	Relative Volume: 1
+Specific Activity [Bq/cm3]
+isotope	 shutdown   
+====================
+h-3 	3.0198e+10  
+he-6 	2.1170e+11  
+li-8 	3.1634e+06  
+li-9 	1.1214e+08  
+be-8 	2.0321e+12  
+be-10 	1.5184e+04  
+====================
+total	2.2741e+12  
+
+Zone #2: W
+	Relative Volume: 1
+	Containing mixture: mix_2
+
+Total (All constituents) 
+	COMPACTED
+	Volume Fraction: 1	Relative Volume: 1
+Specific Activity [Bq/cm3]
+isotope	 shutdown   
+====================
+h-3 	2.5297e+07  
+yb-175 	5.4870e+02  
+yb-176m	4.8227e+02  
+yb-177 	1.9036e+04  
+yb-177m	4.5572e+03  
+yb-178 	9.9194e+01  
+yb-179 	8.2139e-03  
+yb-180 	1.0640e-03  
+lu-174 	3.4474e-15  
+lu-174m	3.3458e-15  
+lu-176 	5.1930e-08  
+lu-176m	3.8902e+03  
+lu-177 	1.0239e+05  
+lu-177m	2.2613e+03  
+lu-178 	3.6224e+06  
+lu-178m	1.9123e+05  
+lu-179 	2.2796e+05  
+lu-180 	4.6611e+03  
+lu-181 	2.4015e+01  
+lu-182 	1.2574e-13  
+hf-175 	1.6652e-03  
+hf-177m	6.8515e+04  
+hf-177n	2.1975e+04  
+hf-178m	2.7289e+07  
+hf-178n	2.2611e+05  
+hf-179m	6.6695e+07  
+hf-179n	2.6362e+06  
+hf-180m	6.9105e+07  
+hf-181 	7.6306e+08  
+hf-182 	1.3211e+00  
+hf-182m	1.4711e+06  
+hf-183 	2.1573e+08  
+hf-184 	2.0427e+06  
+hf-185 	1.6130e+05  
+hf-186 	7.4386e+01  
+hf-187 	7.9735e-02  
+ta-177 	7.6258e+02  
+ta-178 	4.1898e+06  
+ta-178m	2.6676e+06  
+ta-179 	2.0652e+09  
+ta-180 	9.9485e+09  
+ta-180m	1.5638e-06  
+ta-182 	1.0802e+11  
+ta-182m	7.1236e+08  
+ta-182n	3.6731e+08  
+ta-183 	2.1949e+11  
+ta-184 	2.7485e+09  
+ta-185 	3.7717e+07  
+ta-186 	7.7092e+08  
+ta-187 	2.0365e+05  
+ta-188 	4.2713e+02  
+w-178 	4.9000e+02  
+w-179 	4.7030e+09  
+w-179m	1.9533e+08  
+w-181 	6.1406e+11  
+w-183m	5.3055e+12  
+w-185 	2.0270e+12  
+w-185m	4.2388e+11  
+w-187 	3.3039e+13  
+w-188 	1.2423e+09  
+w-189 	4.8209e+05  
+re-182 	8.0538e+01  
+re-182m	6.8729e+01  
+re-183 	5.4653e+06  
+re-184 	1.3408e+10  
+re-184m	1.7400e+09  
+re-186 	2.2355e+12  
+re-186m	5.1216e+05  
+re-187 	1.9191e+03  
+re-188 	7.5842e+12  
+re-188m	2.8614e+11  
+re-189 	6.8825e+08  
+re-190 	1.0076e+05  
+re-190m	4.1182e+03  
+os-183 	1.0110e+00  
+os-183m	1.4508e-01  
+os-185 	6.0122e+09  
+os-186 	1.5726e-03  
+os-189m	1.0298e+11  
+os-190m	1.1566e+08  
+os-191 	3.3980e+08  
+os-191m	2.8238e+08  
+====================
+total	5.1992e+13  
+
+Totals for all zones.
+Specific Activity [Bq/cm3]
+zone	 shutdown   
+====================
+1	2.2741e+12  	Be (mix_1)
+2	5.1992e+13  	W (mix_2)
 ====================
 
 

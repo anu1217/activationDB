@@ -27,9 +27,9 @@ def calc_time_params(active_burn_time, duty_cycle_list, num_pulses):
     return pulse_length_list, dwell_time_arr, t_irr_arr
              
 def write_out_adf(inputs):
-    #runs_list = [inputs['runs_100'], inputs['runs_90'], inputs['runs_50'], inputs['runs_25']]
+    #runs_list = [inputs['runs_100_4y'], inputs['runs_90_4y'], inputs['runs_50_4y'], inputs['runs_25_4y']]
     #start with one dictionary of runs first
-    runs_list = [inputs['runs_100']]
+    runs_list = [inputs['runs_100_4y']]
     for runs_idx, runs in enumerate(runs_list):
         lib = aop.DataLibrary()
         adf = aop.DataLibrary.make_entries(lib, runs)

@@ -111,7 +111,7 @@ def write_sqlite(adf, inputs, norm_flux_array, avg_flux):
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--db_yaml', default = "/filespace/a/asrajendra/research/activationDB/write_sqlite_dir/tools/iter_dt_out.yaml", help="Path (str) to YAML containing inputs")
+    parser.add_argument('--db_yaml', default = "iter_dt_out.yaml", help="Path (str) to YAML containing inputs")
     args = parser.parse_args()
     return args
 

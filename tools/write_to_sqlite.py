@@ -33,7 +33,7 @@ def write_out_adf(runs_list):
     #start with one dictionary of runs (runs_list[0]) first
     for runs in runs_list[0]:
         lib = aop.DataLibrary()
-        adf = lib.make_entries(runs)
+        adf = aop.DataLibrary.make_entries(lib, runs)
     return adf
 
 def parse_flux_lines(flux_lines, num_blocks):

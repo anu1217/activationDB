@@ -66,16 +66,17 @@ def calc_avg_flux_mag(total_flux, active_burn_time):
     # total_flux[0] = total_flux[...]
     return avg_flux
 
-# def calc_avg_flux_mag(total_flux, num_pulses, pulse_length_list, dwell_time_arr): #avg flux magnitude
-#     #avg = total flux (for each zone) over all energy bins, time-integrated, divided by total irradiation time
-#     # for now, the flux across all zones is assumed to be the same
-#     avg_flux_arr = dwell_time_arr.copy()
-#     for dwell_time_ind, dwell_time in enumerate(dwell_time_arr):
-#         on_time = pulse_length_list[dwell_time_ind] * num_pulses[dwell_time_ind]
-#         off_time = dwell_time * (num_pulses[dwell_time_ind] - 1)
-#         # total_flux[0] = total_flux[...]
-#         avg_flux_arr[dwell_time_ind, :] =  (on_time * total_flux[0] + off_time * 0) / (on_time + off_time)
-#     # (on_time * total_flux[0] (one value for now) + off_time * 0 flux) / (on_time + off_time)
+def calc_avg_flux_mag_on_off(total_flux, num_pulses, pulse_length_list, dwell_time_arr): #avg flux magnitude
+    #avg = total flux (for each zone) over all energy bins, time-integrated, divided by total irradiation time
+    # for now, the flux across all zones is assumed to be the same
+    avg_flux_arr = dwell_time_arr.copy()
+    for dwell_time_ind, dwell_time in enumerate(dwell_time_arr):
+        on_time = pulse_length_list[dwell_time_ind] * num_pulses[dwell_time_ind]
+        off_time = dwell_time * (num_pulses[dwell_time_ind] - 1)
+        # total_flux[0] = total_flux[...]
+        avg_flux_arr[dwell_time_ind, :] =  (on_time * total_flux[0] + off_time * 0) / (on_time + off_time)
+    # (on_time * total_flux[0] (one value for now) + off_time * 0 flux) / (on_time + off_time)
+    return avg_flux_arr
 
 def write_sqlite(adf, inputs, norm_flux_array, avg_flux):
     #Add new columns to dataframe
@@ -138,7 +139,7 @@ def main():
     num_blocks = adf['block_num'].nunique()
     bin_widths, flux_array = store_flux_lines(flux_lines, num_blocks)
     norm_flux_array, total_flux = normalize_flux_spectrum(flux_array, bin_widths, num_blocks)
-    #calc_avg_flux_mag(total_flux, num_pulses, pulse_length_list, dwell_time_arr)
+    avg_flux_arr = calc_avg_flux_mag_on_off(total_flux, num_pulses, pulse_length_list, dwell_time_arr)
     avg_flux = calc_avg_flux_mag(total_flux, active_burn_time)
     write_sqlite(adf, inputs, norm_flux_array, avg_flux)
 

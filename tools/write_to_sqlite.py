@@ -51,13 +51,12 @@ def parse_flux_lines(flux_lines, num_blocks):
     flux_array = all_entries.reshape(num_blocks, len(bin_widths))
     return bin_widths, flux_array
 
-def normalize_flux_spectrum(flux_array, bin_widths, num_blocks): #flux spectrum shape
+def normalize_flux_spectrum(flux_array, bin_widths, num_blocks, total_flux): #flux spectrum shape
     norm_flux_array = flux_array.copy()
-    total_flux = np.sum(flux_array, axis=1) #sum over the bin widths of flux array
 
     for zone_idx in range(num_blocks):
         norm_flux_array[zone_idx,:] = (norm_flux_array[zone_idx,:] / bin_widths) * (1 / total_flux[zone_idx])  
-    return norm_flux_array, total_flux
+    return norm_flux_array
 
 def calc_avg_flux_mag(total_flux, active_burn_time):
     avg_flux = total_flux[0] / active_burn_time
@@ -131,13 +130,14 @@ def main():
     duty_cycle_list = inputs['duty_cycles']
     num_pulses = inputs['pulse_list'] 
     runs_list = [inputs['runs_100_4y'], inputs['runs_90_4y'], inputs['runs_50_4y'], inputs['runs_25_4y']]
+    total_flux = np.sum(flux_array, axis=1) #sum over the bin widths of flux array
 
     flux_lines = open_flux_file(flux_file)
     pulse_length_list, dwell_time_arr, t_irr_arr = calc_time_params(active_burn_time, duty_cycle_list, num_pulses)
     adf = write_out_adf(runs_list)
     num_blocks = adf['block_num'].nunique()
     bin_widths, flux_array = parse_flux_lines(flux_lines, num_blocks)
-    norm_flux_array, total_flux = normalize_flux_spectrum(flux_array, bin_widths, num_blocks)
+    norm_flux_array = normalize_flux_spectrum(flux_array, bin_widths, num_blocks, total_flux)
     avg_flux_arr = calc_avg_flux_mag_on_off(total_flux, num_pulses, pulse_length_list, dwell_time_arr)
     avg_flux = calc_avg_flux_mag(total_flux, active_burn_time)
     write_sqlite(adf, inputs, norm_flux_array, avg_flux)

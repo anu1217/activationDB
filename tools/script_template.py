@@ -16,14 +16,13 @@ def parse_flux_lines(flux_lines):
     input : flux_lines (list of lines from ALARA flux file)
     output : flux_array (numpy array of shape # intervals x number of energy groups)
     '''
-    energy_bins = openmc.mgxs.GROUP_STRUCTURES['VITAMIN-J-175']     
-    all_entries = []
-    for flux_line in flux_lines:
-        if flux_line.strip(): #if the current line is not blank
-            all_entries.extend(flux_line.split())
-    all_entries = np.array(all_entries, dtype=float)
+    energy_bins = openmc.mgxs.GROUP_STRUCTURES['VITAMIN-J-175']           
+    all_entries = np.array(' '.join(flux_lines).split(), dtype=float)
     num_groups = len(energy_bins) - 1
-    flux_array = all_entries.reshape(int(len(all_entries) / num_groups), num_groups)
+    num_intervals = len(all_entries) // num_groups
+    if len(all_entries) % num_groups != 0:
+        raise Exception("The number of intervals must be an integer.")
+    flux_array = all_entries.reshape(num_intervals, num_groups)
     return flux_array
 
 def parse_args():

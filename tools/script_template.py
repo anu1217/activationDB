@@ -17,13 +17,13 @@ def parse_flux_lines(flux_lines):
     output : flux_array (numpy array of shape # intervals x number of energy groups)
     '''
     energy_bins = openmc.mgxs.GROUP_STRUCTURES['VITAMIN-J-175']     
-    bin_widths = energy_bins[1:] - energy_bins[:-1]
     all_entries = []
     for flux_line in flux_lines:
         if flux_line.strip(): #if the current line is not blank
             all_entries.extend(flux_line.split())
     all_entries = np.array(all_entries, dtype=float)
-    flux_array = all_entries.reshape(int(len(all_entries) / len(bin_widths)), len(bin_widths))
+    num_groups = len(energy_bins) - 1
+    flux_array = all_entries.reshape(int(len(all_entries) / num_groups), num_groups)
     return flux_array
 
 def parse_args():

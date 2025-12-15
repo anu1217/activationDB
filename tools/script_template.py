@@ -12,7 +12,7 @@ def open_flux_file(flux_file):
 def parse_flux_lines(flux_lines):
     '''
     Uses provided list of flux lines and group structure applied to the run to create an array of flux entries, with:
-    # rows = # flux entries / # group structure bins
+    # rows = # of intervals = total # flux entries / # group structure bins
     # columns = # group structure bins
     input : flux_lines (list of lines from ALARA flux file)
     output : flux_array (numpy array of shape # zones/intervals/mixtures x )

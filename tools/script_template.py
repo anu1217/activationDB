@@ -18,6 +18,8 @@ def parse_flux_lines(flux_lines):
     '''
     energy_bins = openmc.mgxs.GROUP_STRUCTURES['VITAMIN-J-175']           
     all_entries = np.array(' '.join(flux_lines).split(), dtype=float)
+    if len(all_entries) == 0:
+        raise Exception("The chosen flux file is empty.")
     num_groups = len(energy_bins) - 1
     num_intervals = len(all_entries) // num_groups
     if len(all_entries) % num_groups != 0:

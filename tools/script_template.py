@@ -14,19 +14,13 @@ def calc_time_params(active_burn_time, duty_cycle_list, num_pulses):
         duty_cycle_list : list of chosen duty cycles (float)
         num_pulses : list of number of pulses (int) that the active irradiation period is divided into
     '''
-    t_irr_arr = np.ndarray((len(num_pulses), len(duty_cycle_list)), dtype=float)
-    dwell_time_arr = t_irr_arr.copy()
-    pulse_length_list = []
-    
-    for num_idx, num in enumerate(num_pulses):
-        pulse_length = active_burn_time / num
-        pulse_length_list.append(pulse_length)
-        for duty_cycle_idx, duty_cycle in enumerate(duty_cycle_list):
-            dwell_time = pulse_length * (1 - duty_cycle) / duty_cycle
-            dwell_time_arr[num_idx, duty_cycle_idx] = dwell_time
-            t_irr = pulse_length * num + dwell_time * (num - 1) # the dwell time is applied to the first N-1 pulses
-            t_irr_arr[num_idx, duty_cycle_idx] = t_irr
-    return pulse_length_list, dwell_time_arr, t_irr_arr
+    num_pulses = np.asarray(num_pulses)
+
+    pulse_lengths = np.array([active_burn_time / num for num in num_pulses])
+    rel_dwell_times = np.array([(1 - duty_cycle) / duty_cycle for duty_cycle in duty_cycle_list])
+    abs_dwell_times = np.outer(rel_dwell_times, pulse_lengths)
+    t_irr_arr = pulse_lengths * num_pulses + abs_dwell_times * (num_pulses - 1)
+    return pulse_lengths, abs_dwell_times, t_irr_arr
 
 def open_flux_file(flux_file):
     with open(flux_file, 'r') as flux_data:
@@ -78,7 +72,7 @@ def main():
     active_burn_time = inputs['active_burn_time']
     duty_cycle_list = inputs['duty_cycles']
     num_pulses = inputs['num_pulses']
-    pulse_length_list, dwell_time_arr, t_irr_arr = calc_time_params(active_burn_time, duty_cycle_list, num_pulses)
+    pulse_lengths, abs_dwell_times, t_irr_arr = calc_time_params(active_burn_time, duty_cycle_list, num_pulses)
 
 if __name__ == "__main__":
     main()

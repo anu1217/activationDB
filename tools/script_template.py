@@ -49,7 +49,9 @@ def calc_flux_mag_flattened(total_flux, active_burn_time, t_irr_arr):
     Calculates an average flux magnitude for each interval defined in ALARA.
     The flux is averaged over the total amount of time elapsed between the start of the first pulse and the end of the last.
     inputs:
-        total_flux : value of the flux summed over all energy bins''
+        total_flux : value of the flux summed over all energy bins
+    output:
+        avg_flux_arr : numpy array of average flux magnitudes, with shape len(total_flux) x len(duty_cycles) x len(num_pulses)    
     '''
     avg_flux_arr = np.multiply.outer(total_flux, active_burn_time / t_irr_arr)
     return avg_flux_arr

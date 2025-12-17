@@ -59,7 +59,7 @@ def parse_args():
     args = parser.parse_args()
     return args
 
-def read_yaml(yaml_arg):    
+def read_yaml(yaml_arg):
     '''
     input:
         yaml_arg : output of parse_args() corresponding to args.db_yaml

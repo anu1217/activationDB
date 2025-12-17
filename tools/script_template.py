@@ -44,15 +44,6 @@ def parse_flux_lines(flux_lines):
     flux_array = all_entries.reshape(num_intervals, num_groups)
     return flux_array
 
-def norm_flux_spectrum(flux_array, total_flux):
-    '''
-    Normalizes flux spectrum by the total flux in each interval.
-    output:
-        norm_flux_arr : 2D array of shape num_intervals x num_groups
-    '''
-    norm_flux_arr =  flux_array / total_flux.reshape(len(total_flux), 1)
-    return norm_flux_arr
-
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--db_yaml', default = "iter_dt_out.yaml", help="Path (str) to YAML containing inputs")
@@ -81,8 +72,9 @@ def main():
     num_pulses = np.asarray(inputs['num_pulses'])
     pulse_lengths, abs_dwell_times, t_irr_arr = calc_time_params(active_burn_time, duty_cycle_list, num_pulses)
 
-    total_flux = np.sum(flux_array, axis=1) #sum over the bin widths of flux array
-    norm_flux_arr = norm_flux_spectrum(flux_array, total_flux)
+    total_flux = np.sum(flux_array, axis=1) # sum over the bin widths of flux array
+    # normalize flux spectrum by the total flux in each interval
+    norm_flux_arr =  flux_array / total_flux.reshape(len(total_flux), 1) # 2D array of shape num_intervals x num_groups
 
 if __name__ == "__main__":
     main()

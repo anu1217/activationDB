@@ -25,7 +25,7 @@ output zone
  	specific_activity
 end
 #     flux name    fluxin file   norm   shift   unused
-flux  my_flux       ../ref_flux_files/iter_dt_flux_2.0986E14 1     0      default
+flux  my_flux       ../../ref_flux_files/iter_dt_flux_2.0986E14 1     0      default
 # Run 4 FPY with dwell time 0.111y
 schedule    my_schedule
     1 y my_flux ph_1 0  s

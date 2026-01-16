@@ -2,6 +2,8 @@ import argparse
 import yaml
 import numpy as np
 import openmc
+import pandas as pd
+import alara_output_processing as aop
 
 def calc_time_params(active_burn_time, duty_cycle_list, num_pulses):
     '''
@@ -59,6 +61,15 @@ def read_yaml(yaml_arg):
         inputs = yaml.safe_load(yaml_file)
     return inputs
 
+def write_to_adf(run_dicts):
+    adf_data = []
+    for run_dict in run_dicts:
+        lib = aop.DataLibrary()
+        adf = lib.make_entries(run_dicts[run_dict])
+        adf_data.append(adf)
+    adf_data = pd.concat(adf_data)
+    return adf    
+
 def main():        
     args = parse_args()
     inputs = read_yaml(args.db_yaml)
@@ -75,6 +86,12 @@ def main():
     total_flux = np.sum(flux_array, axis=1) # sum over the bin widths of flux array
     # normalize flux spectrum by the total flux in each interval
     norm_flux_arr =  flux_array / total_flux.reshape(len(total_flux), 1) # 2D array of shape num_intervals x num_groups
+
+    run_dicts = inputs['run_dicts']
+
+    # for item in run_dicts:
+    #     print(run_dicts[item])
+    adf = write_to_adf(run_dicts)
 
 if __name__ == "__main__":
     main()

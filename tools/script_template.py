@@ -4,6 +4,7 @@ import numpy as np
 import openmc
 import pandas as pd
 import alara_output_processing as aop
+import sqlite3
 
 def calc_time_params(active_burn_time, duty_cycle_list, num_pulses):
     '''
@@ -20,6 +21,7 @@ def calc_time_params(active_burn_time, duty_cycle_list, num_pulses):
     rel_dwell_times = (1 - duty_cycle_list) / duty_cycle_list
     abs_dwell_times = np.outer(rel_dwell_times, pulse_lengths)
     t_irr_arr = active_burn_time + abs_dwell_times * (num_pulses - 1)
+    print(np.shape(t_irr_arr))
     return pulse_lengths, abs_dwell_times, t_irr_arr
 
 def open_flux_file(flux_file):
@@ -67,17 +69,31 @@ def write_to_adf(run_dicts):
         lib = aop.DataLibrary()
         adf = lib.make_entries(run_dicts[run_dict])
         adf_data.append(adf)
-    adf_data = pd.concat(adf_data)
-    return adf_data    
+    adf = pd.concat(adf_data)
+    return adf   
 
-def write_to_sqlite(adf_data):
-    
+def modify_adf(adf):
     #Remove some columns:
-    adf_data.drop(columns=['time', 'time_unit', 'variable', 'var_unit', 'block', 'block_num'], inplace=True)
-
+    adf.drop(columns=['time', 'time_unit', 'variable', 'var_unit', 'block', 'block_num'], inplace=True)    
     #Rename some columns:
-    adf_data.rename(columns={'value':'num_dens_(atoms/cm3)'}, inplace=True)
+    adf.rename(columns={'value':'num_dens_(atoms/cm3)'}, inplace=True)
+    print(adf)
+    return adf
 
+def write_to_sqlite(adf):
+    sqlite_conn = sqlite3.connect('activation_results.db')
+    adf.to_sql('number_densities', sqlite_conn, if_exists='replace', method="multi")
+
+    try:
+        cursor = sqlite_conn.cursor()  
+        sqlite_conn.commit()
+        result = cursor.fetchall()
+        cursor.close()
+
+        if sqlite_conn:
+            sqlite_conn.close()
+    except sqlite3.OperationalError as error:
+        print(error)  
 
 def main():        
     args = parse_args()
@@ -97,7 +113,10 @@ def main():
     norm_flux_arr =  flux_array / total_flux.reshape(len(total_flux), 1) # 2D array of shape num_intervals x num_groups
 
     run_dicts = inputs['run_dicts']
-    adf_data = write_to_adf(run_dicts)
+
+    adf = write_to_adf(run_dicts)
+    adf = modify_adf(adf)
+    #write_to_sqlite(adf)
 
 if __name__ == "__main__":
     main()

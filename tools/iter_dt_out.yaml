@@ -40,5 +40,4 @@ run_dicts :
         iter_dt_4p_25_4y : ../calc_dwell_dir/iter/duty_cycle_25/output_25/iter_dt_4p_25_4y_out    
         iter_dt_8p_25_4y : ../calc_dwell_dir/iter/duty_cycle_25/output_25/iter_dt_8p_25_4y_out
         iter_dt_32p_25_4y : ../calc_dwell_dir/iter/duty_cycle_25/output_25/iter_dt_32p_25_4y_out
-        iter_dt_64p_25_4y : ../calc_dwell_dir/iter/duty_cycle_25/output_25/iter_dt_64p_25_4y_out   
-
+        iter_dt_64p_25_4y : ../calc_dwell_dir/iter/duty_cycle_25/output_25/iter_dt_64p_25_4y_out

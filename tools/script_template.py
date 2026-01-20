@@ -21,7 +21,6 @@ def calc_time_params(active_burn_time, duty_cycle_list, num_pulses):
     rel_dwell_times = (1 - duty_cycle_list) / duty_cycle_list
     abs_dwell_times = np.outer(rel_dwell_times, pulse_lengths)
     t_irr_arr = active_burn_time + abs_dwell_times * (num_pulses - 1)
-    print(np.shape(t_irr_arr))
     return pulse_lengths, abs_dwell_times, t_irr_arr
 
 def open_flux_file(flux_file):
@@ -37,7 +36,7 @@ def parse_flux_lines(flux_lines):
     input : flux_lines (list of lines from ALARA flux file)
     output : flux_array (numpy array of shape # intervals x number of energy groups)
     '''
-    energy_bins = openmc.mgxs.GROUP_STRUCTURES['VITAMIN-J-175']           
+    energy_bins = openmc.mgxs.GROUP_STRUCTURES['VITAMIN-J-175']
     all_entries = np.array(' '.join(flux_lines).split(), dtype=float)
     if len(all_entries) == 0:
         raise Exception("The chosen flux file is empty.")
@@ -69,15 +68,33 @@ def write_to_adf(run_dicts):
         lib = aop.DataLibrary()
         adf = lib.make_entries(run_dicts[run_dict])
         adf_data.append(adf)
-    adf = pd.concat(adf_data)
+        adf = pd.concat(adf_data)
     return adf   
 
-def modify_adf(adf):
+def modify_adf(adf, norm_flux_arr, t_irr_arr, inputs):
     #Remove some columns:
     adf.drop(columns=['time', 'time_unit', 'variable', 'var_unit', 'block', 'block_num'], inplace=True)    
     #Rename some columns:
     adf.rename(columns={'value':'num_dens_(atoms/cm3)'}, inplace=True)
-    print(adf)
+    block_names = adf['block_name'].unique()
+    flux_map = {block_name: flux_shape for block_name, flux_shape in zip(block_names, norm_flux_arr)}
+    # Normalized flux spectrum shape:
+    adf['flux_spec_shape'] = adf['block_name'].map(flux_map)
+
+    num_pulses = inputs['num_pulses']
+    duty_cycles = inputs['duty_cycles']
+
+    # Extract the number of pulses and duty cycles from the run label
+    pulse_num_dc = adf['run_lbl'].str.extract(r'_(\d+)p_(\d+)_').astype(int)
+
+    # Map num_pulses and duty_cycles to an index
+    pulse_idx = pulse_num_dc[0].map({pulse_num: i for i, pulse_num in enumerate(num_pulses)})
+    duty_cycle_idx  = (pulse_num_dc[1]/100).map({duty_cycle: i for i, duty_cycle in enumerate(duty_cycles)})
+
+    # Add flattened irradiation time:
+    adf['t_irr_flat'] = t_irr_arr.T[pulse_idx.to_numpy(), duty_cycle_idx.to_numpy()]
+    adf['t_irr_flat'] = aop.convert_times(adf['t_irr_flat'], from_unit='y', to_unit='s')
+
     return adf
 
 def write_to_sqlite(adf):
@@ -113,10 +130,11 @@ def main():
     norm_flux_arr =  flux_array / total_flux.reshape(len(total_flux), 1) # 2D array of shape num_intervals x num_groups
 
     run_dicts = inputs['run_dicts']
+    #run_dicts = inputs['iter_dt_100_4y']
 
     adf = write_to_adf(run_dicts)
-    adf = modify_adf(adf)
-    #write_to_sqlite(adf)
+    adf = modify_adf(adf, norm_flux_arr, t_irr_arr, inputs)
+    write_to_sqlite(adf)
 
 if __name__ == "__main__":
     main()

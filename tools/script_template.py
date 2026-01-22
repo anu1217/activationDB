@@ -75,7 +75,6 @@ def main():
     pulse_lengths, abs_dwell_times, t_irr_arr = calc_time_params(active_burn_time, duty_cycle_list, num_pulses)
 
     total_flux = np.sum(flux_array, axis=1) #sum over the bin widths of flux array
-    avg_flux_arr = calc_flux_mag_flattened(total_flux, active_burn_time, t_irr_arr)
     # normalize flux spectrum by the total flux in each interval
     norm_flux_arr =  flux_array / total_flux.reshape(len(total_flux), 1) # 2D array of shape num_intervals x num_groups
     # for each interval, calculate flux averaged over time elapsed between the start of the 1st pulse and the end of the last

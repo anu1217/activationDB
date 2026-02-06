@@ -1,5 +1,6 @@
 # List of necessary inputs from 4FPY ITER DT simulations
 
+json_filename : 'json_sch_dict_iter_dt.json'
 active_burn_time : 4 #years
 duty_cycles :
   - 1

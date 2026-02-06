@@ -2,6 +2,9 @@ import argparse
 import yaml
 import numpy as np
 import openmc
+import json
+
+def calc_time_params_from_out(sch_dict)
 
 def calc_time_params(active_burn_time, duty_cycle_list, num_pulses):
     '''
@@ -61,9 +64,17 @@ def read_yaml(yaml_arg):
         inputs = yaml.safe_load(yaml_file)
     return inputs
 
+def read_json(json_filename):
+    with open(json_filename, 'r') as json_file:
+        sch_dict = json.load(json_file)
+    return sch_dict    
+
 def main():        
     args = parse_args()
     inputs = read_yaml(args.db_yaml)
+
+    json_filename = inputs['json_filename']
+    sch_dict = read_json(json_filename)
 
     flux_file = inputs['flux_file'] 
     flux_lines = open_flux_file(flux_file)

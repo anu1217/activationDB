@@ -1,4 +1,4 @@
-def flatten_pulse_history(pulse_length, num_pulses, dwell_time):
+def flatten_pulse_history(pulse_length, num_pulses, dwell_time, is_last_ph_level):
     """
     Apply the flux flattening approximation to a series of pulses.
 
@@ -12,12 +12,12 @@ def flatten_pulse_history(pulse_length, num_pulses, dwell_time):
     :param num_pulses: (int) the number of pulses
     :param dwell_time: (float) the duration of the gap between each pulse
     """
-
-    t_irr = (num_pulses - 1) * (pulse_length + dwell_time) + pulse_length
+    if is_last_ph_level == True: # do not apply delay to end of last pulse
+        t_irr = (num_pulses - 1) * (pulse_length + dwell_time) + pulse_length
+    if is_last_ph_level == False: # apply delay to the end of all pulses
+        t_irr = num_pulses * (pulse_length + dwell_time)
     flux_factor = num_pulses * pulse_length / t_irr
-
     return t_irr, flux_factor
-
 
 def flatten_all_ph_levels(pulse_lengths, nums_pulses, dwell_times):
     '''
@@ -30,15 +30,14 @@ def flatten_all_ph_levels(pulse_lengths, nums_pulses, dwell_times):
     '''
     total_t_irr = 0
     total_flux_factor = 0
-    for pulse_length_idx, pulse_length in enumerate(pulse_lengths):
-        t_irr, flux_factor = flatten_pulse_history(
-            pulse_length, nums_pulses[pulse_length_idx],
-            dwell_times[pulse_length_idx])
 
-        if pulse_length_idx == len(dwell_times) - 1: # delay applied to first N-1 pulses
-            total_t_irr += t_irr
-        else: # delay applied to all pulses
-            total_t_irr += t_irr + dwell_times[pulse_length_idx]
-            flux_factor = nums_pulses[pulse_length_idx] * pulse_length / (t_irr + dwell_times[pulse_length_idx])
+    for ph_level_idx, (pulse_length, num_pulses, dwell_time) in enumerate(zip(pulse_lengths, nums_pulses, dwell_times)):
+        
+        check_if_last_ph_level = (ph_level_idx == len(pulse_lengths) - 1)
+
+        t_irr, flux_factor = flatten_pulse_history(pulse_length, num_pulses, dwell_time, is_last_ph_level = check_if_last_ph_level)
+
+        total_t_irr += t_irr
         total_flux_factor += flux_factor
+
     return total_t_irr, total_flux_factor

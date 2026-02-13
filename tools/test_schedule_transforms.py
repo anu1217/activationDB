@@ -1,15 +1,15 @@
 import pytest
 import schedule_transforms as st
 
-@pytest.mark.parametrize( "pulse_length,num_pulses,dwell_time,exp_tirr,exp_ff",
+@pytest.mark.parametrize( "pulse_length,num_pulses,dwell_time,exp_tirr,exp_ff,is_last_ph_level",
                           [
-                            (1, 1, 1, 1, 1),
-                            (1, 2, 1, 3, 2/3),
-                            (2, 4, 6, 26, 8/26)
+                            (1, 1, 1, 1, 1, True),
+                            (1, 2, 1, 3, 2/3, True),
+                            (2, 4, 6, 26, 8/26, True)
                           ])
 
-def test_single_pulse_history(pulse_length, num_pulses, dwell_time, exp_tirr, exp_ff):
-    obs_tirr, obs_ff = st.flatten_pulse_history(pulse_length, num_pulses, dwell_time)
+def test_single_pulse_history(pulse_length, num_pulses, dwell_time, exp_tirr, exp_ff, is_last_ph_level):
+    obs_tirr, obs_ff = st.flatten_pulse_history(pulse_length, num_pulses, dwell_time, is_last_ph_level=True)
 
     assert obs_tirr == exp_tirr
     assert obs_ff == exp_ff

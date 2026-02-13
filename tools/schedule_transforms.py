@@ -35,9 +35,9 @@ def flatten_all_ph_levels(pulse_lengths, nums_pulses, dwell_times):
             pulse_length, nums_pulses[pulse_length_idx],
             dwell_times[pulse_length_idx])
 
-        if pulse_length_idx == len(dwell_times) - 1:
+        if pulse_length_idx == len(dwell_times) - 1: # delay applied to first N-1 pulses
             total_t_irr += t_irr
-        else:
+        else: # delay applied to all pulses
             total_t_irr += t_irr + dwell_times[pulse_length_idx]
             flux_factor = nums_pulses[pulse_length_idx] * pulse_length / (t_irr + dwell_times[pulse_length_idx])
         total_flux_factor += flux_factor

@@ -33,7 +33,6 @@ def flatten_all_ph_levels(pulse_lengths, nums_pulses, dwell_times):
 last_level = len(pulse_lengths)-1
     for ph_level_idx, (pulse_length, num_pulses, dwell_time) in enumerate(zip(pulse_lengths, nums_pulses, dwell_times)):
         
-        check_if_last_ph_level = (ph_level_idx == len(pulse_lengths) - 1)
 
         t_irr, flux_factor = flatten_pulse_history(pulse_length, num_pulses, dwell_time, ph_level_idx == last_level)
 

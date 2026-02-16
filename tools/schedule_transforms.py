@@ -1,4 +1,4 @@
-def flatten_pulse_history(pulse_length, num_pulses, dwell_time, is_last_ph_level):
+def flatten_pulse_history(pulse_length, num_pulses, dwell_time, is_last_ph_level=True):
     """
     Apply the flux flattening approximation to a series of pulses.
 

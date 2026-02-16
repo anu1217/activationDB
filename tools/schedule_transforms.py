@@ -35,7 +35,7 @@ last_level = len(pulse_lengths)-1
         
         check_if_last_ph_level = (ph_level_idx == len(pulse_lengths) - 1)
 
-        t_irr, flux_factor = flatten_pulse_history(pulse_length, num_pulses, dwell_time, is_last_ph_level = check_if_last_ph_level)
+        t_irr, flux_factor = flatten_pulse_history(pulse_length, num_pulses, dwell_time, ph_level_idx == last_level)
 
         total_t_irr += t_irr
         total_flux_factor += flux_factor

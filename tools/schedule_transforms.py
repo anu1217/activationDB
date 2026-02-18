@@ -27,9 +27,9 @@ def flatten_ph_levels(pulse_length, nums_pulses, dwell_times):
     :param dwell_times: (iterable) the duration of the gap between each pulse at each level
     '''
     tot_ph_ff = 1
-    tot_t_irr = pulse_length
+    tot_ph_t_irr = pulse_length
     for num_pulses, dwell_time in zip(nums_pulses, dwell_times):
-        tot_ph_t_irr, ff = flatten_pulse_history(tot_t_irr, num_pulses, dwell_time)
+        tot_ph_t_irr, ff = flatten_pulse_history(tot_ph_t_irr, num_pulses, dwell_time)
         tot_ph_ff *= ff
     return tot_ph_t_irr, tot_ph_ff
 
@@ -43,10 +43,11 @@ def calc_simple_sched_flattened_params(pulse_lengths, sched_dwell_times, nums_pu
     :param nums_pulses: (iterable) number of pulses at each pulsing level
     :param ph_dwell_times: (iterable) the duration of the gap between each pulse at each pulsing level
     '''
-    tot_sched_ff = 1
+    tot_active_burn_times = 0
     tot_sched_t_irr = 0
-    for pulse_length, sched_dwell_time in zip(pulse_lengths, sched_dwell_times[:-1] + [0]): # ignore last schedule dwell time
+    for pulse_length, sched_dwell_time in zip(pulse_lengths, sched_dwell_times[:-1] + [0]): # ignore last schedule entry's dwell time
         ph_t_irr, ph_ff = flatten_ph_levels(pulse_length, nums_pulses, ph_dwell_times)
         tot_sched_t_irr += ph_t_irr + sched_dwell_time
-        tot_sched_ff *= ph_ff * tot_sched_t_irr / (tot_sched_t_irr + sched_dwell_time) # check this
+        tot_active_burn_times += ph_ff * ph_t_irr
+    tot_sched_ff = tot_active_burn_times / tot_sched_t_irr   
     return tot_sched_t_irr, tot_sched_ff

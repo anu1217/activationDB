@@ -17,6 +17,19 @@ def flatten_pulse_history(pulse_length, num_pulses, dwell_time):
 
     return t_irr, flux_factor
 
+def compress_pulse_history(pulse_length, num_pulses):
+    '''
+    Applies the compression algorithm to a series of pulses. This algorithm
+    preserves the total active irradiation time between the start of the first
+    and end of the last pulse, and the total fluence.
+    
+    :param pulse_length: (float) the duration of each pulse
+    :param num_pulses: (int) the number of pulses
+    '''
+    t_irr = num_pulses * pulse_length
+
+    return t_irr
+
 def flatten_ph_levels(pulse_length, nums_pulses, dwell_times):
     '''
     Apply the flattening algorithm to all levels of a multi-level pulsing history

@@ -47,6 +47,13 @@ def flatten_ph_levels(pulse_length, nums_pulses, dwell_times):
     return tot_t_irr_flat, tot_ff_flat
 
 def compress_ph_levels(pulse_length, nums_pulses):
+    '''
+    Apply the compression algorithm to all levels of a multi-level pulsing history
+    with a single-level schedule block.  
+    
+    :param pulse_lengths: active irradiation time from schedule block
+    :param nums_pulses: (iterable) number of pulses at each level
+    '''
     tot_t_irr_comp = pulse_length
     for num_pulses in nums_pulses:
         tot_t_irr_comp = compress_pulse_history(tot_t_irr_comp, num_pulses)

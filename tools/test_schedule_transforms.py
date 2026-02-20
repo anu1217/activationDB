@@ -13,6 +13,18 @@ def test_single_pulse_history(pulse_length, num_pulses, dwell_time, exp_tirr, ex
     assert obs_tirr == exp_tirr
     assert obs_ff == exp_ff
 
+@pytest.mark.parametrize( "pulse_length,num_init_pulses,dwell_time,final_pulses,exp_tirr,exp_ff",
+                          [
+                            (1, 5, 2, 1, 10, 4/10),
+                            (5, 5, 1, 1, 23, 20/23),
+                            (5, 5, 1, 3, 11, 10/11)                              
+                          ])
+def test_flatten_ph_exact_pulses(pulse_length, num_init_pulses, dwell_time, final_pulses, exp_tirr, exp_ff):
+    obs_tirr, obs_ff = st.flatten_ph_exact_pulses(pulse_length, num_init_pulses, dwell_time, final_pulses)
+
+    assert obs_tirr == exp_tirr
+    assert obs_ff == exp_ff
+
 @pytest.mark.parametrize( "pulse_length,nums_pulses,dwell_times,exp_tot_tirr,exp_tot_ff",
                           [
                             (1, [1,1], [1,1], 1, 1),

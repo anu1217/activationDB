@@ -78,4 +78,3 @@ def compress_ph_levels(pulse_length, nums_pulses):
     for num_pulses in nums_pulses:
         tot_t_irr_comp = compress_pulse_history(tot_t_irr_comp, num_pulses)
     return tot_t_irr_comp
-

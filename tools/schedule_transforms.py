@@ -12,10 +12,10 @@ def flatten_pulse_history(pulse_length, num_pulses, dwell_time):
     :param num_pulses: (int) the number of pulses
     :param dwell_time: (float) the duration of the gap between each pulse
     """
-    t_irr = (num_pulses-1) * (pulse_length + dwell_time) + pulse_length
-    flux_factor = num_pulses * pulse_length / t_irr
+    t_irr_flat = (num_pulses-1) * (pulse_length + dwell_time) + pulse_length
+    flux_factor_flat = num_pulses * pulse_length / t_irr_flat
 
-    return t_irr, flux_factor
+    return t_irr_flat, flux_factor_flat
 
 def compress_pulse_history(pulse_length, num_pulses):
     '''
@@ -26,9 +26,9 @@ def compress_pulse_history(pulse_length, num_pulses):
     :param pulse_length: (float) the duration of each pulse
     :param num_pulses: (int) the number of pulses
     '''
-    t_irr = num_pulses * pulse_length
+    t_irr_comp = num_pulses * pulse_length
 
-    return t_irr
+    return t_irr_comp
 
 def flatten_ph_levels(pulse_length, nums_pulses, dwell_times):
     '''
@@ -39,9 +39,23 @@ def flatten_ph_levels(pulse_length, nums_pulses, dwell_times):
     :param nums_pulses: (iterable) number of pulses at each level
     :param dwell_times: (iterable) the duration of the gap between each pulse at each level
     '''
-    tot_ff = 1
-    tot_t_irr = pulse_length
+    tot_ff_flat = 1
+    tot_t_irr_flat = pulse_length
     for num_pulses, dwell_time in zip(nums_pulses, dwell_times):
-        tot_t_irr, ff = flatten_pulse_history(tot_t_irr, num_pulses, dwell_time)
-        tot_ff *= ff
-    return tot_t_irr, tot_ff
+        tot_t_irr_flat, ff = flatten_pulse_history(tot_t_irr_flat, num_pulses, dwell_time)
+        tot_ff_flat *= ff
+    return tot_t_irr_flat, tot_ff_flat
+
+def compress_ph_levels(pulse_length, nums_pulses):
+    '''
+    Apply the compression algorithm to all levels of a multi-level pulsing history
+    with a single-level schedule block.  
+    
+    :param pulse_lengths: active irradiation time from schedule block
+    :param nums_pulses: (iterable) number of pulses at each level
+    '''
+    tot_t_irr_comp = pulse_length
+    for num_pulses in nums_pulses:
+        tot_t_irr_comp = compress_pulse_history(tot_t_irr_comp, num_pulses)
+    return tot_t_irr_comp
+

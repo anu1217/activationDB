@@ -34,7 +34,7 @@ def test_flatten_ph_levels(pulse_length, nums_pulses, dwell_times, exp_tot_tirr,
     obs_tot_tirr, obs_tot_ff = st.flatten_ph_levels(pulse_length, nums_pulses, dwell_times)
 
     assert obs_tot_tirr == exp_tot_tirr
-    assert obs_tot_ff == exp_tot_ff    
+    assert obs_tot_ff == exp_tot_ff
 
 @pytest.mark.parametrize( "pulse_length,nums_pulses,exp_tot_tirr",
                           [

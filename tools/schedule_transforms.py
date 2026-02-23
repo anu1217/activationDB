@@ -12,10 +12,23 @@ def flatten_pulse_history(pulse_length, num_pulses, dwell_time):
     :param num_pulses: (int) the number of pulses
     :param dwell_time: (float) the duration of the gap between each pulse
     """
-    t_irr = (num_pulses-1) * (pulse_length + dwell_time) + pulse_length
-    flux_factor = num_pulses * pulse_length / t_irr
+    t_irr_flat = (num_pulses-1) * (pulse_length + dwell_time) + pulse_length
+    flux_factor_flat = num_pulses * pulse_length / t_irr_flat
 
-    return t_irr, flux_factor
+    return t_irr_flat, flux_factor_flat
+
+def compress_pulse_history(pulse_length, num_pulses):
+    '''
+    Applies the compression algorithm to a series of pulses. This algorithm
+    preserves the total active irradiation time between the start of the first
+    and end of the last pulse, and the total fluence.
+    
+    :param pulse_length: (float) the duration of each pulse
+    :param num_pulses: (int) the number of pulses
+    '''
+    t_irr_comp = num_pulses * pulse_length
+
+    return t_irr_comp
 
 def flatten_ph_levels(pulse_length, nums_pulses, dwell_times):
     '''
@@ -26,12 +39,12 @@ def flatten_ph_levels(pulse_length, nums_pulses, dwell_times):
     :param nums_pulses: (iterable) number of pulses at each level
     :param dwell_times: (iterable) the duration of the gap between each pulse at each level
     '''
-    tot_ph_ff = 1
-    tot_ph_t_irr = pulse_length
+    tot_ff_flat = 1
+    tot_t_irr_flat = pulse_length
     for num_pulses, dwell_time in zip(nums_pulses, dwell_times):
-        tot_ph_t_irr, ff = flatten_pulse_history(tot_ph_t_irr, num_pulses, dwell_time)
-        tot_ph_ff *= ff
-    return tot_ph_t_irr, tot_ph_ff
+        tot_t_irr_flat, ff = flatten_pulse_history(tot_t_irr_flat, num_pulses, dwell_time)
+        tot_ff_flat *= ff
+    return tot_t_irr_flat, tot_ff_flat
 
 def read_sched_entry(pulse_length, nums_pulses, ph_dwell_times, sched_dwell_time):
     ph_t_irr, ph_ff = flatten_ph_levels(pulse_length, nums_pulses, ph_dwell_times)
@@ -39,7 +52,7 @@ def read_sched_entry(pulse_length, nums_pulses, ph_dwell_times, sched_dwell_time
     sched_entry_active_burn_time = ph_ff * ph_t_irr
     return sched_entry_t_irr, sched_entry_active_burn_time
 
-def calc_simple_sched_flattened_params(pulse_lengths, sched_dwell_times, nums_pulses, ph_dwell_times):
+def flatten_simple_sched(pulse_lengths, sched_dwell_times, nums_pulses, ph_dwell_times):
     '''
     Calculate irradiation time and flux factor for a schedule that uses a single pulse history in all entries.
     This method does not account for sub-schedules.
@@ -57,3 +70,17 @@ def calc_simple_sched_flattened_params(pulse_lengths, sched_dwell_times, nums_pu
         tot_active_burn_times += sched_entry_active_burn_time
     tot_sched_ff = tot_active_burn_times / tot_sched_t_irr   
     return tot_sched_t_irr, tot_sched_ff
+
+def compress_ph_levels(pulse_length, nums_pulses):
+    '''
+    Apply the compression algorithm to all levels of a multi-level pulsing history
+    with a single-level schedule block.  
+    
+    :param pulse_lengths: active irradiation time from schedule block
+    :param nums_pulses: (iterable) number of pulses at each level
+    '''
+    tot_t_irr_comp = pulse_length
+    for num_pulses in nums_pulses:
+        tot_t_irr_comp = compress_pulse_history(tot_t_irr_comp, num_pulses)
+    return tot_t_irr_comp
+

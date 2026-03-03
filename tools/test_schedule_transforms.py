@@ -54,8 +54,8 @@ def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_tirr):
                             ([2,2], [2,2], [2,2], [2,2], 30, 16/30),
                             ([1,1], [10,10], [2,2], [1,2], 26, 8/26)
                           ])
-def test_calc_simple_sched_flattened_params(pulse_lengths, sched_dwell_times, nums_pulses, ph_dwell_times, exp_tot_sched_tirr,exp_tot_sched_ff):
-    obs_tot_sched_tirr, obs_tot_sched_ff = st.calc_simple_sched_flattened_params(pulse_lengths, sched_dwell_times, nums_pulses, ph_dwell_times)
+def test_flatten_simple_sched(pulse_lengths, sched_dwell_times, nums_pulses, ph_dwell_times, exp_tot_sched_tirr,exp_tot_sched_ff):
+    obs_tot_sched_tirr, obs_tot_sched_ff = st.flatten_simple_sched(pulse_lengths, sched_dwell_times, nums_pulses, ph_dwell_times)
     
     assert obs_tot_sched_tirr == exp_tot_sched_tirr
     assert obs_tot_sched_ff == exp_tot_sched_ff

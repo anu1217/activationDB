@@ -46,12 +46,6 @@ def flatten_ph_levels(pulse_length, nums_pulses, dwell_times):
         tot_ff_flat *= ff
     return tot_t_irr_flat, tot_ff_flat
 
-def read_sched_entry(pulse_length, nums_pulses, ph_dwell_times, sched_dwell_time):
-    ph_t_irr, ph_ff = flatten_ph_levels(pulse_length, nums_pulses, ph_dwell_times)
-    sched_entry_t_irr = ph_t_irr + sched_dwell_time
-    sched_entry_active_burn_time = ph_ff * ph_t_irr
-    return sched_entry_t_irr, sched_entry_active_burn_time
-
 def flatten_simple_sched(pulse_lengths, sched_dwell_times, nums_pulses, ph_dwell_times):
     '''
     Calculate irradiation time and flux factor for a schedule that uses a single pulse history in all entries.
@@ -65,9 +59,9 @@ def flatten_simple_sched(pulse_lengths, sched_dwell_times, nums_pulses, ph_dwell
     tot_active_burn_times = 0
     tot_sched_t_irr = 0
     for pulse_length, sched_dwell_time in zip(pulse_lengths, sched_dwell_times[:-1] + [0]): # ignore last schedule entry's dwell time
-        sched_entry_t_irr, sched_entry_active_burn_time = read_sched_entry(pulse_length, nums_pulses, ph_dwell_times, sched_dwell_time)
-        tot_sched_t_irr += sched_entry_t_irr
-        tot_active_burn_times += sched_entry_active_burn_time
+        ph_t_irr, ph_ff = flatten_ph_levels(pulse_length, nums_pulses, ph_dwell_times)
+        tot_sched_t_irr += ph_t_irr + sched_dwell_time
+        tot_active_burn_times += ph_ff * ph_t_irr
     tot_sched_ff = tot_active_burn_times / tot_sched_t_irr   
     return tot_sched_t_irr, tot_sched_ff
 

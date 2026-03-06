@@ -104,7 +104,25 @@ def flatten_mult_simple_scheds(all_pulse_lengths, all_sched_dwell_times, all_num
         all_sched_t_irr += sched_t_irr
         all_sched_abt += sched_t_irr * sched_ff
     tot_ff = all_sched_abt / all_sched_t_irr     
-    return all_sched_t_irr, tot_ff    
+    return all_sched_t_irr, tot_ff  
+
+def flatten_comp_sched(simple_pulse_lengths, simple_sched_dwell_times, simple_nums_pulses, simple_ph_dwell_times, sub_sched_dwell_times):
+    tot_active_burn_time = 0
+    tot_sched_t_irr = 0
+    simple_entries_t_irr, simple_entries_ff = flatten_simple_sched(simple_pulse_lengths, 
+                                                                   simple_sched_dwell_times, 
+                                                                   simple_nums_pulses, 
+                                                                   simple_ph_dwell_times)
+    tot_sched_t_irr += simple_entries_t_irr
+    tot_active_burn_time += simple_entries_t_irr * simple_entries_ff
+    for sub_sched_dwell_time in sub_sched_dwell_times:
+        flatten_comp_sched(simple_pulse_lengths, 
+                           simple_sched_dwell_times, 
+                           simple_nums_pulses, 
+                           simple_ph_dwell_times, 
+                           sub_sched_dwell_times)
+
+
 
 def compress_ph_levels(pulse_length, nums_pulses):
     '''

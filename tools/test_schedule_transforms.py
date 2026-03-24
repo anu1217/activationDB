@@ -61,12 +61,26 @@ def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_tirr):
 
 @pytest.mark.parametrize( "pulse_lengths,sched_dwell_times, nums_pulses,ph_dwell_times,exp_tot_sched_tirr,exp_tot_sched_ff",
                           [
-                            ([1], [1], [1,1], [1,1], 1, 1),
-                            ([2,2], [2,2], [2,2], [2,2], 30, 16/30),
-                            ([1,1], [10,10], [2,2], [1,2], 26, 8/26)
+                            ([1], [0], [1,1], [1,1], 1, 1),
+                            ([2,2], [2,0], [2,2], [2,2], 30, 16/30),
+                            ([1,1], [10,0], [2,2], [1,2], 26, 8/26)
                           ])
 def test_flatten_simple_sched(pulse_lengths, sched_dwell_times, nums_pulses, ph_dwell_times, exp_tot_sched_tirr,exp_tot_sched_ff):
     obs_tot_sched_tirr, obs_tot_sched_ff = st.flatten_simple_sched(pulse_lengths, sched_dwell_times, nums_pulses, ph_dwell_times)
     
     assert obs_tot_sched_tirr == exp_tot_sched_tirr
     assert obs_tot_sched_ff == exp_tot_sched_ff
+
+@pytest.mark.parametrize( "nested_pls, nested_pe_delays, nums_pulses, ph_dwell_times, sched_delays, exp_tirr, exp_ff",
+                          [
+                            ([1,1], [1, 1], [1], [1], (1, []), 5, 2/5),
+                            ([10,2,[5]], [20, 10, [10]], [1], [1], (5, [(2, [])]), 64, 17/64),
+                            ([10,2,[5],[5]], [20, 10, [10],[3]], [1], [1], (5, [(2, []), (2, [])]), 74, 22/74),
+                            ([10,2,[5],4], [20, 10, [10],20], [1], [1], (5, [(2, [])]), 88, 21/88),
+                            ([1], [1], [2], [0], (1, []), 7, 4/7)
+                          ])
+def test_flatten_sub_sched(nested_pls, nested_pe_delays, nums_pulses, ph_dwell_times, sched_delays, exp_tirr, exp_ff):
+    obs_tirr, obs_ff = st.flatten_sub_sched(nested_pls, nested_pe_delays, nums_pulses, ph_dwell_times, sched_delays)
+    
+    assert obs_tirr == exp_tirr
+    assert obs_ff == exp_ff    

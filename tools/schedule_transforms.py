@@ -94,7 +94,7 @@ def flatten_sub_sched(child_dicts,
     for child_dict in child_dicts:
         if child_dict['type'] == 'schedule':
             child_tirr, child_ff = flatten_sub_sched(
-                child_dict,
+                child_dict['children'],
                 sched_delay_dur=child_dict['sched_delay_dur'],
                 sched_np=child_dict['nums_pulses'],
                 sched_ph_dt=child_dict['ph_dwell_times'])

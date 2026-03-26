@@ -99,7 +99,7 @@ def flatten_sub_sched(child_dicts,
                 sched_delay_dur=child_dict['sched_delay_dur'],
                 sched_np=child_dict['nums_pulses'],
                 sched_ph_dt=child_dict['ph_dwell_times'])
-            t_irr += child_tirr
+            t_irr += child_tirr + child_dict['sched_delay_dur']
             active_burn_time += child_tirr * child_ff
 
         if child_dict['type'] == 'pulse_entry':
@@ -110,7 +110,7 @@ def flatten_sub_sched(child_dicts,
             t_irr += pe_tirr + child_dict['pe_delay_dur']
             
     active_burn_time = flatten_ph_levels(active_burn_time, sched_np, [0]*len(sched_ph_dt))[0]
-    t_irr = flatten_ph_levels(t_irr, sched_np, sched_ph_dt)[0] + sched_delay_dur
+    t_irr = flatten_ph_levels(t_irr, sched_np, sched_ph_dt)[0]
     
     ff = active_burn_time / t_irr
 

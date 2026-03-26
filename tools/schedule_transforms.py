@@ -116,7 +116,6 @@ def flatten_sub_sched(child_dicts,
 
     return t_irr, ff
 
-
 def compress_ph_levels(pulse_length, nums_pulses):
     '''
     Apply the compression algorithm to all levels of a multi-level pulsing history

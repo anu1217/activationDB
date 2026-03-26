@@ -58,7 +58,6 @@ def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_tirr):
 
     assert obs_tot_tirr == exp_tot_tirr
 
-
 @pytest.mark.parametrize( "child_dicts, sched_delay_dur, sched_np, sched_ph_dt, exp_tirr, exp_ff",
                           [
                             ({'children':

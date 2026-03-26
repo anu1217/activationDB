@@ -48,7 +48,6 @@ def flatten_ph_exact_pulses(pulse_length, num_tot_pulses, dwell_time,
     t_irr_flat_exact_pulses, ff_flat_exact_pulses = flatten_pulse_history(pulse_length, num_init_pulses, dwell_time)
     return t_irr_flat_exact_pulses, ff_flat_exact_pulses
 
-
 def flatten_ph_levels(pulse_length, nums_pulses, dwell_times):
     '''
     Apply the flattening algorithm to all levels of a multi-level pulsing history
@@ -65,64 +64,58 @@ def flatten_ph_levels(pulse_length, nums_pulses, dwell_times):
         tot_ff_flat *= ff
     return tot_t_irr_flat, tot_ff_flat
 
-def flatten_simple_sched(pulse_lengths, sched_pe_dwell_times, nums_pulses, ph_dwell_times):
+def flatten_sub_sched(child_dicts,
+                      sched_delay_dur=0,
+                      sched_np=[1],
+                      sched_ph_dt=[0]):
     '''
-    Calculate irradiation time and flux factor for a schedule that uses a single pulse history in all entries.
-    This method does not account for sub-schedules.
-    
-    :param pulse_lengths: (iterable) of pulse lengths from the schedule's pulse entries
-    :param sched_pe_dwell_times: (iterable) of dwell times from the schedule's pulse entries
-    :param nums_pulses: (iterable) number of pulses at each pulsing level
-    :param ph_dwell_times: (iterable) the duration of the gap between each pulse at each pulsing level
+    Calculate irradiation time and flux factor for a schedule containing an arbitrary number of pulse entries
+    and/or sub-schedules.
+    :param child_dicts: iterable of dictionaries, with the form:
+    {'children': [
+        {'type': 'schedule',
+        'sched_delay_dur': (float),
+        'nums_pulses': (iterable of int),
+        'ph_dwell_times': (iterable of float),
+        'children': [{...}]
+        },
+
+        {'type': 'pulse_entry',
+        'pulse_length': (float),
+        'pe_delay_dur' : (float),
+        'nums_pulses': (iterable of int),
+        'ph_dwell_times': (iterable of float)
+        }
+    ]
+    }
+    It is possible for the value of the 'children' key at any level to consist entirely of pulse entries.
     '''
-    tot_active_burn_times = 0
-    tot_sched_t_irr = 0
-    for pulse_length, sched_pe_dwell_time in zip(pulse_lengths, sched_pe_dwell_times):
-        ph_t_irr, ph_ff = flatten_ph_levels(pulse_length, nums_pulses, ph_dwell_times)
-        tot_sched_t_irr += ph_t_irr + sched_pe_dwell_time
-        tot_active_burn_times += ph_ff * ph_t_irr
-    tot_sched_ff = tot_active_burn_times / tot_sched_t_irr   
-    return tot_sched_t_irr, tot_sched_ff
-
-def flatten_sub_sched(nested_pls, nested_pe_delays, nums_pulses, ph_dwell_times, sched_delays):
-    '''
-    Calculate irradiation time and flux factor for a sub-schedule with pulsing entries.
-    Uses the same pulse history in both the pulsing entries and at the schedule level.
-
-    :param nested_pls: (nested iterables) of pulse lengths, where each new iterable corresponds to the 
-    beginning of a sub-schedule
-
-    :param nested_pe_delays: (nested iterables) of delay times in each pulse entry, where each new iterable 
-    corresponds to the beginning of a sub-schedule
-
-    :param nums_pulses: (iterable) number of pulses at each pulsing level
-    :param ph_dwell_times: (iterable) the duration of the gap between each pulse at each pulsing level
-
-    :param sched_delays: Delay times from lines that designate sub-schedules. This is a recursive data structure containing nested tuples, where 
-    each tuple is of the form (current_sched_delay, child_sched_delay), and child_sched_delay is an iterable of tuples, where each tuple 
-    again has the form (current_sched_delay, child_sched_delay)
-    '''
-    current_sched_delay, child_sched_delays = sched_delays
-    sub_sched_idx = 0 # Used to decide which sub-schedule's delay should be applied when there are multiple at the same level 
     t_irr = 0
-    abt = 0
-    for nested_pl, nested_pe_delay in zip(nested_pls, nested_pe_delays):
-        if isinstance(nested_pl, list):
-            child_t_irr, child_ff = flatten_sub_sched(nested_pl, nested_pe_delay, nums_pulses, ph_dwell_times, child_sched_delays[sub_sched_idx])
-            t_irr += child_t_irr
-            abt += child_ff * child_t_irr
-            sub_sched_idx += 1
-        else:
-            pe_tirr, pe_ff = flatten_ph_levels(nested_pl, nums_pulses, ph_dwell_times)
-            t_irr += pe_tirr + nested_pe_delay
-            abt += pe_ff * pe_tirr
- 
-   
-    t_irr = flatten_simple_sched([t_irr], [0], nums_pulses, ph_dwell_times)[0] + current_sched_delay
-    abt = flatten_simple_sched([abt], [0], nums_pulses, [0]*len(ph_dwell_times))[0]
+    active_burn_time = 0
+    for child_dict in child_dicts['children']:
+        if child_dict['type'] == 'schedule':
+            child_tirr, child_ff = flatten_sub_sched(
+                child_dict,
+                sched_delay_dur=child_dict['sched_delay_dur'],
+                sched_np=child_dict['nums_pulses'],
+                sched_ph_dt=child_dict['ph_dwell_times'])
+            t_irr += child_tirr
+            active_burn_time += child_tirr * child_ff
 
-    ff = abt / t_irr
+        if child_dict['type'] == 'pulse_entry':
+            pe_tirr, pe_ff = flatten_ph_levels(child_dict['pulse_length'],
+                                               child_dict['nums_pulses'],
+                                               child_dict['ph_dwell_times'])
+            active_burn_time += pe_tirr * pe_ff
+            t_irr += pe_tirr + child_dict['pe_delay_dur']
+            
+    active_burn_time = flatten_ph_levels(active_burn_time, sched_np, [0]*len(sched_ph_dt))[0]
+    t_irr = flatten_ph_levels(t_irr, sched_np, sched_ph_dt)[0] + sched_delay_dur
+    
+    ff = active_burn_time / t_irr
+
     return t_irr, ff
+
 
 def compress_ph_levels(pulse_length, nums_pulses):
     '''

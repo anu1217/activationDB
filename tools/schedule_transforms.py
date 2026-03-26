@@ -67,7 +67,7 @@ def flatten_ph_levels(pulse_length, pulse_history):
     return tot_t_irr_flat, tot_ff_flat
 
 
-def flatten_sub_sched(child_dicts, pulse_history=[(1, 0)], sched_delay_dur=0):
+def flatten_sub_sched(child_dicts, pulse_history=[(1, 0)]):
     '''
     Calculate irradiation time and flux factor for a schedule containing an arbitrary number of pulse entries
     and/or sub-schedules.
@@ -93,8 +93,7 @@ def flatten_sub_sched(child_dicts, pulse_history=[(1, 0)], sched_delay_dur=0):
         if child_dict['type'] == 'schedule':
             child_tirr, child_ff = flatten_sub_sched(
                 child_dict['children'],
-                pulse_history=child_dict['pulse_history'],
-                sched_delay_dur=child_dict['sched_delay_dur'])
+                pulse_history=child_dict['pulse_history'])
             t_irr += child_tirr + child_dict['sched_delay_dur']
             active_burn_time += child_tirr * child_ff
 

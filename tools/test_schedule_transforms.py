@@ -58,7 +58,7 @@ def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_tirr):
 
     assert obs_tot_tirr == exp_tot_tirr
 
-@pytest.mark.parametrize( "child_dicts, pulse_history, sched_delay_dur, exp_tirr, exp_ff",
+@pytest.mark.parametrize( "child_dicts, pulse_history, exp_tirr, exp_ff",
                           [
                             ([
                                 {
@@ -83,7 +83,6 @@ def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_tirr):
                             ],
 
                                [(1,0)],
-                               0,
                                5,
                                2/5),
 
@@ -136,7 +135,6 @@ def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_tirr):
                                ],
 
                                [(1,0)],
-                               0,
                                74,
                                22/74),
 
@@ -157,14 +155,13 @@ def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_tirr):
                                ],
 
                                [(1,0)],
-                               0,
                                7,
                                4/7),
 
                           ])
-def test_flatten_sub_sched(child_dicts, pulse_history, sched_delay_dur,
+def test_flatten_sub_sched(child_dicts, pulse_history,
                            exp_tirr, exp_ff):
-    obs_tirr, obs_ff = st.flatten_sub_sched(child_dicts, pulse_history, sched_delay_dur)
+    obs_tirr, obs_ff = st.flatten_sub_sched(child_dicts, pulse_history)
 
     assert obs_tirr == exp_tirr
     assert obs_ff == exp_ff

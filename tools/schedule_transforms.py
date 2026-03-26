@@ -72,7 +72,7 @@ def flatten_sub_sched(child_dicts,
     Calculate irradiation time and flux factor for a schedule containing an arbitrary number of pulse entries
     and/or sub-schedules.
     :param child_dicts: iterable of dictionaries, with the form:
-    {'children': [
+   [
         {'type': 'schedule',
         'sched_delay_dur': (float),
         'nums_pulses': (iterable of int),

@@ -59,10 +59,10 @@ def flatten_ph_levels(pulse_length, pulse_history):
     '''
     tot_ff_flat = 1
     tot_t_irr_flat = pulse_length
-    for pulse_history_level in pulse_history:
+    for num_pulses, dwell_time in pulse_history:
         tot_t_irr_flat, ff = flatten_pulse_history(tot_t_irr_flat,
-                                                   pulse_history_level[0],
-                                                   pulse_history_level[1])
+                                                   num_pulses,
+                                                   dwell_time)
         tot_ff_flat *= ff
     return tot_t_irr_flat, tot_ff_flat
 

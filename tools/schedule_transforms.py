@@ -82,7 +82,7 @@ def flatten_sub_sched(child_dicts, pulse_history=[(1, 0)]):
     {'type': 'pulse_entry',
     'pulse_length': (float),
     'pulse_history': (iterable of (int, float)),
-    'pe_delay_dur' : (float)
+    'delay_dur' : (float)
     }
     ]
     It is possible for the value of the 'children' key at any level to consist entirely of pulse entries.
@@ -101,7 +101,7 @@ def flatten_sub_sched(child_dicts, pulse_history=[(1, 0)]):
             pe_tirr, pe_ff = flatten_ph_levels(child_dict['pulse_length'],
                                                child_dict['pulse_history'])
             active_burn_time += pe_tirr * pe_ff
-            t_irr += pe_tirr + child_dict['pe_delay_dur']
+            t_irr += pe_tirr + child_dict['delay_dur']
 
     active_burn_time = flatten_ph_levels(
         active_burn_time,

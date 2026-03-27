@@ -70,13 +70,13 @@ def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_tirr):
                                     {'type': 'pulse_entry',
                                     'pulse_length': 1,
                                     'pulse_history':[(1,1)],
-                                    'pe_delay_dur' : 1
+                                    'delay_dur' : 1
                                     },
 
                                     {'type': 'pulse_entry',
                                     'pulse_length': 1,
                                     'pulse_history':[(1,1)],
-                                    'pe_delay_dur' : 1
+                                    'delay_dur' : 1
                                     }
                                     ]
                                }
@@ -96,13 +96,13 @@ def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_tirr):
                                     {'type': 'pulse_entry',
                                     'pulse_length': 10,
                                     'pulse_history':[(1,1)],
-                                    'pe_delay_dur' : 20
+                                    'delay_dur' : 20
                                     },
 
                                     {'type': 'pulse_entry',
                                     'pulse_length': 2,
                                     'pulse_history':[(1,1)],
-                                    'pe_delay_dur' : 10
+                                    'delay_dur' : 10
                                     },
 
                                     {'type': 'schedule',
@@ -113,7 +113,7 @@ def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_tirr):
                                         {'type': 'pulse_entry',
                                         'pulse_length': 5,
                                         'pulse_history':[(1,1)],
-                                        'pe_delay_dur' : 10
+                                        'delay_dur' : 10
                                         }
                                         ]
                                     },
@@ -125,7 +125,7 @@ def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_tirr):
                                         {'type': 'pulse_entry',
                                         'pulse_length': 5,
                                         'pulse_history':[(1,1)],
-                                        'pe_delay_dur' : 3
+                                        'delay_dur' : 3
                                         }
                                         ]
                                     }
@@ -148,7 +148,7 @@ def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_tirr):
                                     {'type': 'pulse_entry',
                                     'pulse_length': 1,
                                     'pulse_history': [(2,0)],
-                                    'pe_delay_dur' : 1
+                                    'delay_dur' : 1
                                     }
                                     ]
                                 },

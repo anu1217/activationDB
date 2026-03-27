@@ -83,8 +83,8 @@ def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_tirr):
                             ],
 
                                [(1,0)],
-                               5,
-                               2/5),
+                               3,
+                               2/3),
 
                             ([
                                 {
@@ -135,8 +135,8 @@ def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_tirr):
                                ],
 
                                [(1,0)],
-                               74,
-                               22/74),
+                               54,
+                               22/54),
 
                             ([
                                 {
@@ -155,13 +155,13 @@ def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_tirr):
                                ],
 
                                [(1,0)],
-                               7,
-                               4/7),
+                               4,
+                               4/4),
 
                           ])
 def test_flatten_sub_sched(child_dicts, pulse_history,
                            exp_tirr, exp_ff):
     obs_tirr, obs_ff = st.flatten_sub_sched(child_dicts, pulse_history)
 
-    assert obs_tirr == exp_tirr
-    assert obs_ff == exp_ff
+    assert obs_tirr == pytest.approx(exp_tirr)
+    assert obs_ff == pytest.approx(exp_ff)

@@ -99,13 +99,14 @@ def flatten_sub_sched(child_dicts, pulse_history=[(1, 0)]):
                                                child_dict['pulse_history'])
         active_burn_time += child_tirr * child_ff
         t_irr += child_tirr + child_dict['delay_dur']
-    active_burn_time = flatten_ph_levels(
-        active_burn_time,
-        [(num_pulses, 0) for num_pulses, ph_dwell_time in pulse_history])[0]
-
-    t_irr = flatten_ph_levels(t_irr, pulse_history)[0]
-
+    t_irr -= child_dicts[-1]['delay_dur'] 
     ff = active_burn_time / t_irr
+
+    t_irr, new_ff = flatten_ph_levels(
+        t_irr,
+        pulse_history)
+
+    ff *= new_ff    
 
     return t_irr, ff
 

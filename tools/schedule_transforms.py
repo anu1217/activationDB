@@ -75,7 +75,7 @@ def flatten_sub_sched(child_dicts, pulse_history=[(1, 0)]):
     [
     {'type': 'schedule',
     'pulse_history': (iterable of (int, float)),
-    'sched_delay_dur': (float),
+    'delay_dur': (float),
     'children': [{...}]
     },
 
@@ -94,7 +94,7 @@ def flatten_sub_sched(child_dicts, pulse_history=[(1, 0)]):
             child_tirr, child_ff = flatten_sub_sched(
                 child_dict['children'],
                 pulse_history=child_dict['pulse_history'])
-            t_irr += child_tirr + child_dict['sched_delay_dur']
+            t_irr += child_tirr + child_dict['delay_dur']
             active_burn_time += child_tirr * child_ff
 
         if child_dict['type'] == 'pulse_entry':

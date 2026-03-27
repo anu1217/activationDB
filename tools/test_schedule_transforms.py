@@ -64,7 +64,7 @@ def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_tirr):
                                 {
                                 'type': 'schedule',
                                 'pulse_history':[(1,1)],
-                                'sched_delay_dur': 1,
+                                'delay_dur': 1,
                                 'children':
                                     [
                                     {'type': 'pulse_entry',
@@ -90,7 +90,7 @@ def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_tirr):
                                 {
                                 'type': 'schedule',
                                 'pulse_history':[(1,1)],
-                                'sched_delay_dur': 5,
+                                'delay_dur': 5,
                                 'children':
                                     [
                                     {'type': 'pulse_entry',
@@ -107,7 +107,7 @@ def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_tirr):
 
                                     {'type': 'schedule',
                                     'pulse_history':[(1,1)],
-                                    'sched_delay_dur': 2,
+                                    'delay_dur': 2,
                                     'children':
                                         [
                                         {'type': 'pulse_entry',
@@ -119,7 +119,7 @@ def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_tirr):
                                     },
                                     {'type': 'schedule',
                                     'pulse_history':[(1,1)],
-                                    'sched_delay_dur': 2,
+                                    'delay_dur': 2,
                                     'children':
                                         [
                                         {'type': 'pulse_entry',
@@ -141,7 +141,7 @@ def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_tirr):
                             ([
                                 {
                                 'type': 'schedule',
-                                'sched_delay_dur': 1,
+                                'delay_dur': 1,
                                 'pulse_history': [(2,0)],
                                 'children':
                                     [

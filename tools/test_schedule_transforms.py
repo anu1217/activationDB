@@ -158,6 +158,39 @@ def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_tirr):
                                4,
                                4/4),
 
+                            ([
+                                {
+                                'type': 'schedule',
+                                'delay_dur': 1,
+                                'pulse_history': [(2,0)],
+                                'children':
+                                    [
+                                    {'type': 'pulse_entry',
+                                    'pulse_length': 1,
+                                    'pulse_history': [(2,0)],
+                                    'delay_dur' : 1
+                                    }
+                                    ],
+                                },
+                                {   
+                                'type': 'schedule',
+                                'delay_dur': 1,
+                                'pulse_history': [(2,0)],
+                                'children':
+                                    [
+                                    {'type': 'pulse_entry',
+                                    'pulse_length': 1,
+                                    'pulse_history': [(2,0)],
+                                    'delay_dur' : 1
+                                    }
+                                    ],
+                                },
+                               ],
+
+                               [(1,0)],
+                               9,
+                               8/9),
+
                           ])
 def test_flatten_sub_sched(child_dicts, pulse_history,
                            exp_tirr, exp_ff):

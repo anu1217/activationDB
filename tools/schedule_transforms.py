@@ -93,7 +93,7 @@ def flatten_sub_sched(child_dicts, pulse_history=[(1, 0)]):
         if child_dict['type'] == 'schedule':
             child_tirr, child_ff = flatten_sub_sched(
                 child_dict['children'],
-                pulse_history=child_dict['pulse_history'])
+                child_dict['pulse_history'])
         if child_dict['type'] == 'pulse_entry':
             child_tirr, child_ff = flatten_ph_levels(child_dict['pulse_length'],
                                                child_dict['pulse_history'])

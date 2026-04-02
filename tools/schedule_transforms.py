@@ -74,15 +74,15 @@ def flatten_sub_sched(child_dicts, pulse_history=[(1, 0)]):
     :param child_dicts: iterable of dictionaries, with the form:
     [
     {'type': 'schedule',
-    'pulse_history': (iterable of (int, float)),
-    'delay_dur': (float),
-    'children': [{...}]
+     'children': [{...}]
+     'pulse_history': (iterable of (int, float)),
+     'delay_dur': (float),
     },
 
     {'type': 'pulse_entry',
-    'pulse_length': (float),
-    'pulse_history': (iterable of (int, float)),
-    'delay_dur' : (float)
+     'pulse_length': (float),
+     'pulse_history': (iterable of (int, float)),
+     'delay_dur' : (float)
     }
     ]
     It is possible for the value of the 'children' key at any level to consist entirely of pulse entries.

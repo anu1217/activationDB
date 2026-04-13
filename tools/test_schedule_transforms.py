@@ -199,63 +199,73 @@ def test_flatten_schedule(child_dicts, pulse_history,
     assert obs_dur == pytest.approx(exp_dur)
     assert obs_fluence == pytest.approx(exp_fluence)
 
-@pytest.mark.parametrize( "child_dicts, nums_pulses, exp_dur",
+@pytest.mark.parametrize( "child_dicts, pulse_history, exp_dur",
                           [
                             ([
                                 {
                                 'type': 'schedule',
-                                'nums_pulses':[1],
+                                'pulse_history':[(1,1)],
+                                'delay_dur': 1,
                                 'children':
                                     [
                                     {'type': 'pulse_entry',
                                     'pulse_length': 1,
-                                    'nums_pulses':[1]
+                                    'pulse_history':[(1,1)],
+                                    'delay_dur' : 1
                                     },
 
                                     {'type': 'pulse_entry',
                                     'pulse_length': 1,
-                                    'nums_pulses':[1]
+                                    'pulse_history':[(1,1)],
+                                    'delay_dur' : 1
                                     }
                                     ]
                                }
                             ],
 
-                               [1],
+                               [(1,0)],
                                2),
 
                             ([
                                 {
                                 'type': 'schedule',
-                                'nums_pulses':[1],
+                                'pulse_history':[(1,1)],
+                                'delay_dur': 5,
                                 'children':
                                     [
                                     {'type': 'pulse_entry',
                                     'pulse_length': 10,
-                                    'nums_pulses':[1]
+                                    'pulse_history':[(1,1)],
+                                    'delay_dur' : 20
                                     },
 
                                     {'type': 'pulse_entry',
                                     'pulse_length': 2,
-                                    'nums_pulses':[1]
+                                    'pulse_history':[(1,1)],
+                                    'delay_dur' : 10
                                     },
 
                                     {'type': 'schedule',
-                                    'nums_pulses':[1],
+                                    'pulse_history':[(1,1)],
+                                    'delay_dur': 2,
                                     'children':
                                         [
                                         {'type': 'pulse_entry',
                                         'pulse_length': 5,
-                                        'nums_pulses':[1]
+                                        'pulse_history':[(1,1)],
+                                        'delay_dur' : 10
                                         }
                                         ]
                                     },
                                     {'type': 'schedule',
-                                    'nums_pulses':[1],
+                                    'pulse_history':[(1,1)],
+                                    'delay_dur': 2,
                                     'children':
                                         [
                                         {'type': 'pulse_entry',
                                         'pulse_length': 5,
-                                        'nums_pulses':[1]
+                                        'pulse_history':[(1,1)],
+                                        'delay_dur' : 3
                                         }
                                         ]
                                     }
@@ -264,57 +274,64 @@ def test_flatten_schedule(child_dicts, pulse_history,
                                 }
                                ],
 
-                               [1],
+                               [(1,0)],
                                22),
 
                             ([
                                 {
                                 'type': 'schedule',
-                                'nums_pulses': [2],
+                                'delay_dur': 1,
+                                'pulse_history': [(2,0)],
                                 'children':
                                     [
                                     {'type': 'pulse_entry',
                                     'pulse_length': 1,
-                                    'nums_pulses': [2]
+                                    'pulse_history': [(2,0)],
+                                    'delay_dur' : 1
                                     }
                                     ]
                                 },
                                ],
 
-                               [1],
+                               [(1,0)],
                                4),
 
                             ([
                                 {
                                 'type': 'schedule',
-                                'nums_pulses': [2],
+                                'delay_dur': 1,
+                                'pulse_history': [(2,0)],
                                 'children':
                                     [
                                     {'type': 'pulse_entry',
                                     'pulse_length': 1,
-                                    'nums_pulses': [2]
+                                    'pulse_history': [(2,0)],
+                                    'delay_dur' : 1
                                     }
                                     ],
                                 },
                                 {   
                                 'type': 'schedule',
-                                'nums_pulses': [2],
+                                'delay_dur': 1,
+                                'pulse_history': [(2,0)],
                                 'children':
                                     [
                                     {'type': 'pulse_entry',
                                     'pulse_length': 1,
-                                    'nums_pulses': [2]
+                                    'pulse_history': [(2,0)],
+                                    'delay_dur' : 1
                                     }
                                     ],
                                 },
                                ],
 
-                               [1],
+                               [(1,0)],
                                8),
 
                           ])
-def test_compress_schedule(child_dicts, nums_pulses,
+
+def test_compress_schedule(child_dicts, pulse_history,
                            exp_dur):
-    obs_dur = st.compress_schedule(child_dicts, nums_pulses)
+    obs_dur = st.compress_schedule(child_dicts, pulse_history)
 
     assert obs_dur == pytest.approx(exp_dur)

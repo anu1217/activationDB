@@ -123,7 +123,7 @@ def compress_ph_levels(pulse_length, nums_pulses):
         tot_sched_children_dur_comp = compress_pulse_history(tot_sched_children_dur_comp, num_pulses)
     return tot_sched_children_dur_comp
 
-def compress_schedule(child_dicts, nums_pulses=[1]):
+def compress_schedule(child_dicts, pulse_history=[(1, 0)]):
     '''
     Calculate compressed irradiation time for a schedule containing an arbitrary number of pulse entries
     and/or sub-schedules.
@@ -131,12 +131,14 @@ def compress_schedule(child_dicts, nums_pulses=[1]):
     [
     {'type': 'schedule',
      'children': [{...}]
-     'nums_pulses': (iterable) number of pulses at each level
+     'pulse_history': (iterable of (int, float)),
+     'delay_dur': (float),
     },
 
     {'type': 'pulse_entry',
      'pulse_length': (float),
-     'nums_pulses': (iterable) number of pulses at each level
+     'pulse_history': (iterable of (int, float)),
+     'delay_dur' : (float)
     }
     ]
     '''
@@ -145,14 +147,14 @@ def compress_schedule(child_dicts, nums_pulses=[1]):
         if child_dict['type'] == 'schedule':
             child_dur = compress_schedule(
                 child_dict['children'],
-                child_dict['nums_pulses'])
+                child_dict['pulse_history'])
         if child_dict['type'] == 'pulse_entry':
             child_dur = compress_ph_levels(child_dict['pulse_length'],
-                                               child_dict['nums_pulses'])
+                                               [hist[0] for hist in child_dict['pulse_history']])
         sched_children_dur += child_dur
 
     sched_dur = compress_ph_levels(
         sched_children_dur,
-        nums_pulses)
+        [hist[0] for hist in pulse_history])
 
     return sched_dur

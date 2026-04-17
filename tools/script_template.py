@@ -1,7 +1,6 @@
 import argparse
 import yaml
 import numpy as np
-import openmc
 import pandas as pd
 import alara_output_processing as aop
 import sqlite3
@@ -28,7 +27,13 @@ def open_flux_file(flux_file):
         flux_str = flux_data.read()
     return flux_str
 
-def parse_flux_str(flux_str):
+def get_energy_bins(vit_j_file):
+    with open(vit_j_file, 'r') as vit_j:
+        energy_bins = vit_j.read()
+    energy_bins = np.fromstring(energy_bins, sep=' ')    
+    return energy_bins    
+
+def parse_flux_str(flux_str, energy_bins):
     '''
     Uses provided list of flux lines and group structure applied to the run to create an array of flux entries, with:
     # rows = # of intervals = total # flux entries / # group structure bins
@@ -36,7 +41,6 @@ def parse_flux_str(flux_str):
     input : flux_str (data (str) from ALARA flux file)
     output : flux_array (numpy array of shape # intervals x number of energy groups)
     '''
-    energy_bins = openmc.mgxs.GROUP_STRUCTURES['VITAMIN-J-175']
     all_entries = np.array(flux_str.split(), dtype=float)
     if len(all_entries) == 0:
         raise Exception("The chosen flux file is empty.")
@@ -72,6 +76,13 @@ def write_to_adf(run_dicts):
     return adf   
 
 def modify_adf(adf, norm_flux_arr, t_irr_arr, inputs):
+    adf = adf.filter_rows(
+        filter_dict=
+        {
+            "time": -1,
+             "variable" : adf.VARIABLE_ENUM["Number Density"]
+        }
+    )
     #Remove some columns:
     adf.drop(columns=['time', 'time_unit', 'variable', 'var_unit', 'block', 'block_num'], inplace=True)    
     #Rename some columns:
@@ -117,9 +128,11 @@ def main():
     args = parse_args()
     inputs = read_yaml(args.db_yaml)
 
-    flux_file = inputs['flux_file'] 
+    flux_file = inputs['flux_file']
+    vit_j_file = inputs['vit_j_file']
     flux_str = open_flux_file(flux_file)
-    flux_array = parse_flux_str(flux_str)
+    energy_bins = get_energy_bins(vit_j_file)
+    flux_array = parse_flux_str(flux_str, energy_bins)
 
     active_burn_time = np.asarray(inputs['active_burn_time'])
     duty_cycle_list = np.asarray(inputs['duty_cycles'])

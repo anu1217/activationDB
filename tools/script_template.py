@@ -25,19 +25,19 @@ def calc_time_params(active_burn_time, duty_cycle_list, num_pulses):
 
 def open_flux_file(flux_file):
     with open(flux_file, 'r') as flux_data:
-        flux_lines = flux_data.read()
-    return flux_lines
+        flux_str = flux_data.read()
+    return flux_str
 
-def parse_flux_lines(flux_lines):
+def parse_flux_str(flux_str):
     '''
     Uses provided list of flux lines and group structure applied to the run to create an array of flux entries, with:
     # rows = # of intervals = total # flux entries / # group structure bins
     # columns = # group structure bins
-    input : flux_lines (list of lines from ALARA flux file)
+    input : flux_str (data (str) from ALARA flux file)
     output : flux_array (numpy array of shape # intervals x number of energy groups)
     '''
     energy_bins = openmc.mgxs.GROUP_STRUCTURES['VITAMIN-J-175']
-    all_entries = np.array(flux_data.split(), dtype=float)
+    all_entries = np.array(flux_str.split(), dtype=float)
     if len(all_entries) == 0:
         raise Exception("The chosen flux file is empty.")
     num_groups = len(energy_bins) - 1
@@ -77,7 +77,8 @@ def modify_adf(adf, norm_flux_arr, t_irr_arr, inputs):
     #Rename some columns:
     adf.rename(columns={'value':'num_dens_(atoms/cm3)'}, inplace=True)
     block_names = adf['block_name'].unique()
-    flux_map = dict(zip(block_names, norm_flux_arr))
+    flux_map = dict(zip(block_names, norm_flux_arr))
+
     # Normalized flux spectrum shape:
     adf['flux_spec_shape'] = adf['block_name'].map(flux_map)
 
@@ -117,8 +118,8 @@ def main():
     inputs = read_yaml(args.db_yaml)
 
     flux_file = inputs['flux_file'] 
-    flux_lines = open_flux_file(flux_file)
-    flux_array = parse_flux_lines(flux_lines)
+    flux_str = open_flux_file(flux_file)
+    flux_array = parse_flux_str(flux_str)
 
     active_burn_time = np.asarray(inputs['active_burn_time'])
     duty_cycle_list = np.asarray(inputs['duty_cycles'])

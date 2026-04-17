@@ -25,7 +25,10 @@ def calc_time_params(active_burn_time, duty_cycle_list, num_pulses):
 def open_flux_file(flux_file):
     with open(flux_file, 'r') as flux_data:
         flux_str = flux_data.read()
-    return flux_str
+    all_flux_entries = np.array(flux_str.split(), dtype=float)
+    if len(all_flux_entries) == 0:
+        raise Exception("The chosen flux file is empty.")
+    return all_flux_entries
 
 def get_energy_bins(vit_j_file):
     with open(vit_j_file, 'r') as vit_j:
@@ -33,22 +36,19 @@ def get_energy_bins(vit_j_file):
     energy_bins = np.fromstring(energy_bins, sep=' ')    
     return energy_bins    
 
-def parse_flux_str(flux_str, energy_bins):
+def parse_flux_str(all_flux_entries, energy_bins):
     '''
     Uses provided list of flux lines and group structure applied to the run to create an array of flux entries, with:
     # rows = # of intervals = total # flux entries / # group structure bins
     # columns = # group structure bins
-    input : flux_str (data (str) from ALARA flux file)
+    input : all_flux_entries (data (numpy array) from ALARA flux file)
     output : flux_array (numpy array of shape # intervals x number of energy groups)
     '''
-    all_entries = np.array(flux_str.split(), dtype=float)
-    if len(all_entries) == 0:
-        raise Exception("The chosen flux file is empty.")
     num_groups = len(energy_bins) - 1
-    num_intervals = len(all_entries) // num_groups
-    if len(all_entries) % num_groups != 0:
+    num_intervals = len(all_flux_entries) // num_groups
+    if len(all_flux_entries) % num_groups != 0:
         raise Exception("The number of intervals must be an integer.")
-    flux_array = all_entries.reshape(num_intervals, num_groups)
+    flux_array = all_flux_entries.reshape(num_intervals, num_groups)
     return flux_array
 
 def parse_args():
@@ -130,9 +130,9 @@ def main():
 
     flux_file = inputs['flux_file']
     vit_j_file = inputs['vit_j_file']
-    flux_str = open_flux_file(flux_file)
+    all_flux_entries = open_flux_file(flux_file)
     energy_bins = get_energy_bins(vit_j_file)
-    flux_array = parse_flux_str(flux_str, energy_bins)
+    flux_array = parse_flux_str(all_flux_entries, energy_bins)
 
     active_burn_time = np.asarray(inputs['active_burn_time'])
     duty_cycle_list = np.asarray(inputs['duty_cycles'])

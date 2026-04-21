@@ -69,7 +69,7 @@ def flatten_ph_exact_pulses(pulse_length, num_tot_pulses, dwell_time,
     :param num_final_pulses: (int) the number of final pulses
     '''
     num_init_pulses = num_tot_pulses - num_final_pulses
-    sched_children_dur_flat_exact_pulses, fluence_flat_exact_pulses = flatten_pulse_history(pulse_length, num_init_pulses, dwell_time)
+    sched_children_dur_flat_exact_pulses, fluence_flat_exact_pulses = flatten_pulse_history(pulse_length, (num_init_pulses, dwell_time))
     return sched_children_dur_flat_exact_pulses, fluence_flat_exact_pulses
 
 
@@ -85,8 +85,8 @@ def flatten_ph_levels(pulse_length, pulse_history):
     tot_dur_flat = pulse_length
     for num_pulses, dwell_time in pulse_history:
         tot_dur_flat, fluence_flat = flatten_pulse_history(tot_dur_flat,
-                                                   num_pulses,
-                                                   dwell_time)
+                                                   (num_pulses,
+                                                   dwell_time))
         tot_ff_flat *= fluence_flat / tot_dur_flat
     tot_fluence_flat = tot_dur_flat * tot_ff_flat   
     return tot_dur_flat, tot_fluence_flat
@@ -130,8 +130,8 @@ def compress_ph_levels(pulse_length, pulse_history):
     :param pulse_history : (iterable of (int, float))
     '''
     tot_sched_children_dur_comp = pulse_length
-    for num_pulses, _ in pulse_history:
-        tot_sched_children_dur_comp = compress_pulse_history(tot_sched_children_dur_comp, num_pulses)
+    for lvl_hist in pulse_history:
+        tot_sched_children_dur_comp = compress_pulse_history(tot_sched_children_dur_comp, lvl_hist)
     return tot_sched_children_dur_comp
 
 def compress_schedule(child_dicts, pulse_history=[(1, 0)]):
@@ -161,11 +161,11 @@ def compress_schedule(child_dicts, pulse_history=[(1, 0)]):
                 child_dict['pulse_history'])
         if child_dict['type'] == 'pulse_entry':
             child_dur = compress_ph_levels(child_dict['pulse_length'],
-                                               [hist[0] for hist in child_dict['pulse_history']])
+                                            child_dict['pulse_history'])
         sched_children_dur += child_dur
 
     sched_dur = compress_ph_levels(
         sched_children_dur,
-        [hist[0] for hist in pulse_history])
+        pulse_history)
 
     return sched_dur

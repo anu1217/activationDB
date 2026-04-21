@@ -13,14 +13,14 @@ def test_single_pulse_history(pulse_length, pulse_history, exp_dur, exp_fluence)
     assert obs_dur == exp_dur
     assert obs_fluence == exp_fluence
 
-@pytest.mark.parametrize( "pulse_length,num_tot_pulses,dwell_time,num_final_pulses,exp_dur,exp_fluence",
+@pytest.mark.parametrize( "pulse_length,pulse_history,num_final_pulses,exp_dur,exp_fluence",
                           [
-                            (1, 5, 2, 1, 10, 4),
-                            (5, 5, 1, 1, 23, 20),
-                            (5, 5, 1, 3, 11, 10)
+                            (1, (5, 2), 1, 10, 4),
+                            (5, (5, 1), 1, 23, 20),
+                            (5, (5, 1), 3, 11, 10)
                           ])
-def test_flatten_ph_exact_pulses(pulse_length, num_tot_pulses, dwell_time, num_final_pulses, exp_dur, exp_fluence):
-    obs_dur, obs_fluence = st.flatten_ph_exact_pulses(pulse_length, num_tot_pulses, dwell_time, num_final_pulses)
+def test_flatten_ph_exact_pulses(pulse_length, pulse_history, num_final_pulses, exp_dur, exp_fluence):
+    obs_dur, obs_fluence = st.flatten_ph_exact_pulses(pulse_length, pulse_history, num_final_pulses)
 
     assert obs_dur == exp_dur
     assert obs_fluence == exp_fluence

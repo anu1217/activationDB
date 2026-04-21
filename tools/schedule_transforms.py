@@ -54,7 +54,7 @@ def compress_pulse_history(pulse_length, pulse_history):
     return sched_children_dur_comp
 
 
-def flatten_ph_exact_pulses(pulse_length, num_tot_pulses, dwell_time,
+def flatten_ph_exact_pulses(pulse_length, pulse_history,
                             num_final_pulses):
     '''
     Applies the flattening approximation to a series of pulses. Preserves an arbitrary
@@ -63,10 +63,10 @@ def flatten_ph_exact_pulses(pulse_length, num_tot_pulses, dwell_time,
     set of final pulses is considered to be exact in duration and delay time as the initial set.
 
     :param pulse_length: (float) the duration of each initial pulse
-    :param num_tot_pulses: (int) the total number of pulses (initial + final)
-    :param dwell_time: (float) the duration of the gap between each initial pulse
+    :param pulse_history: (int, float) of total # pulses, dwell time
     :param num_final_pulses: (int) the number of final pulses
     '''
+    num_tot_pulses, dwell_time = pulse_history
     num_init_pulses = num_tot_pulses - num_final_pulses
     sched_children_dur_flat_exact_pulses, fluence_flat_exact_pulses = flatten_pulse_history(pulse_length, (num_init_pulses, dwell_time))
     return sched_children_dur_flat_exact_pulses, fluence_flat_exact_pulses
@@ -82,10 +82,9 @@ def flatten_ph_levels(pulse_length, pulse_history):
     '''
     tot_ff_flat = 1
     tot_dur_flat = pulse_length
-    for num_pulses, dwell_time in pulse_history:
+    for lvl_hist in pulse_history:
         tot_dur_flat, fluence_flat = flatten_pulse_history(tot_dur_flat,
-                                                   (num_pulses,
-                                                   dwell_time))
+                                                   lvl_hist)
         tot_ff_flat *= fluence_flat / tot_dur_flat
     tot_fluence_flat = tot_dur_flat * tot_ff_flat   
     return tot_dur_flat, tot_fluence_flat

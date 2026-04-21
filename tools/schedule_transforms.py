@@ -33,8 +33,7 @@ def flatten_pulse_history(pulse_length, pulse_history):
     :param pulse_length: (float) the duration of each pulse
     :param pulse_history : (int, float) of # pulses, dwell time
     """
-    num_pulses = pulse_history[0]
-    dwell_time = pulse_history[1]
+    num_pulses, dwell_time = pulse_history
     duration_flat = (num_pulses-1) * (pulse_length + dwell_time) + pulse_length
     fluence_flat = num_pulses * pulse_length
 
@@ -49,7 +48,7 @@ def compress_pulse_history(pulse_length, pulse_history):
     :param pulse_length: (float) the duration of each pulse
     :param pulse_history : (int, float) of # pulses, dwell time
     '''
-    num_pulses = pulse_history[0]
+    num_pulses, _ = pulse_history
     sched_children_dur_comp = num_pulses * pulse_length
 
     return sched_children_dur_comp

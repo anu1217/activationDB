@@ -1,37 +1,38 @@
 import pytest
 import schedule_transforms as st
 
-@pytest.mark.parametrize( "pulse_length,num_pulses,dwell_time,exp_dur,exp_fluence",
+@pytest.mark.parametrize( "pulse_length,pulse_history,exp_dur,exp_fluence",
                           [
-                            (1, 1, 1, 1, 1),
-                            (1, 2, 1, 3, 2),
-                            (2, 4, 6, 26, 8)
+                            (1, (1, 1), 1, 1),
+                            (1, (2, 1), 3, 2),
+                            (2, (4, 6), 26, 8)
                           ])
-def test_single_pulse_history(pulse_length, num_pulses, dwell_time, exp_dur, exp_fluence):
-    obs_dur, obs_fluence = st.flatten_pulse_history(pulse_length, num_pulses, dwell_time)
+def test_single_pulse_history(pulse_length, pulse_history, exp_dur, exp_fluence):
+    obs_dur, obs_fluence = st.flatten_pulse_history(pulse_length, pulse_history)
 
     assert obs_dur == exp_dur
     assert obs_fluence == exp_fluence
 
-@pytest.mark.parametrize( "pulse_length,num_tot_pulses,dwell_time,num_final_pulses,exp_dur,exp_fluence",
+@pytest.mark.parametrize( "pulse_length,pulse_history,num_final_pulses,exp_dur,exp_fluence",
                           [
-                            (1, 5, 2, 1, 10, 4),
-                            (5, 5, 1, 1, 23, 20),
-                            (5, 5, 1, 3, 11, 10)
+                            (1, (5, 2), 1, 10, 4),
+                            (5, (5, 1), 1, 23, 20),
+                            (5, (5, 1), 3, 11, 10)
                           ])
-def test_flatten_ph_exact_pulses(pulse_length, num_tot_pulses, dwell_time, num_final_pulses, exp_dur, exp_fluence):
-    obs_dur, obs_fluence = st.flatten_ph_exact_pulses(pulse_length, num_tot_pulses, dwell_time, num_final_pulses)
+def test_flatten_ph_exact_pulses(pulse_length, pulse_history, num_final_pulses, exp_dur, exp_fluence):
+    obs_dur, obs_fluence = st.flatten_ph_exact_pulses(pulse_length, pulse_history, num_final_pulses)
 
     assert obs_dur == exp_dur
     assert obs_fluence == exp_fluence
-@pytest.mark.parametrize( "pulse_length,num_pulses,exp_dur",
+
+@pytest.mark.parametrize( "pulse_length,pulse_history,exp_dur",
                           [
-                            (1, 1, 1),
-                            (1, 2, 2),
-                            (10, 5, 50)
+                            (1, (1, 1), 1),
+                            (1, (2, 2), 2),
+                            (10, (5, 5), 50)
                           ])
-def test_compress_pulse_history(pulse_length, num_pulses, exp_dur):
-    obs_dur = st.compress_pulse_history(pulse_length, num_pulses)
+def test_compress_pulse_history(pulse_length, pulse_history, exp_dur):
+    obs_dur = st.compress_pulse_history(pulse_length, pulse_history)
 
     assert obs_dur == exp_dur
 
@@ -47,18 +48,19 @@ def test_flatten_ph_levels(pulse_length, pulse_history, exp_tot_dur, exp_tot_flu
     assert obs_tot_dur == exp_tot_dur
     assert obs_tot_fluence == exp_tot_fluence
 
-@pytest.mark.parametrize( "pulse_length,nums_pulses,exp_tot_dur",
+@pytest.mark.parametrize( "pulse_length,pulse_history,exp_tot_dur",
                           [
-                            (1, [1,1], 1),
-                            (1, [2,2], 4),
-                            (2, [5,7], 70)
+                            (1, [(1,1), (1,1)], 1),
+                            (1, [(2,2), (2,2)], 4),
+                            (2, [(5,5), (7,7)], 70)
                           ])
-def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_dur):
-    obs_tot_dur = st.compress_ph_levels(pulse_length, nums_pulses)
+def test_compress_ph_levels(pulse_length, pulse_history, exp_tot_dur):
+    obs_tot_dur = st.compress_ph_levels(pulse_length, pulse_history)
 
     assert obs_tot_dur == exp_tot_dur
 
-@pytest.mark.parametrize( "child_dicts, pulse_history, exp_dur, exp_fluence",
+class Test_Flattened_Compressed:
+    common_args = ("child_dicts, pulse_history, exp_fluence",
                           [
                             ([
                                 {
@@ -83,7 +85,6 @@ def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_dur):
                             ],
 
                                [(1,0)],
-                               3,
                                2),
 
                             ([
@@ -135,7 +136,6 @@ def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_dur):
                                ],
 
                                [(1,0)],
-                               54,
                                22),
 
                             ([
@@ -155,7 +155,6 @@ def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_dur):
                                ],
 
                                [(1,0)],
-                               4,
                                4),
 
                             ([
@@ -188,13 +187,24 @@ def test_compress_ph_levels(pulse_length, nums_pulses, exp_tot_dur):
                                ],
 
                                [(1,0)],
-                               9,
                                8),
 
                           ])
-def test_flatten_schedule(child_dicts, pulse_history,
-                           exp_dur, exp_fluence):
-    obs_dur, obs_fluence = st.flatten_schedule(child_dicts, pulse_history)
+    durations = [3, 54, 4, 9]
+    @pytest.mark.parametrize("child_dicts, pulse_history, exp_fluence, exp_dur",
+                             [
+                                (*args, dur) for args, dur in zip(common_args[1], durations)
+                             ])
+    def test_flatten_schedule(self, child_dicts, pulse_history,
+                            exp_fluence, exp_dur):
+        obs_dur, obs_fluence = st.flatten_schedule(child_dicts, pulse_history)
 
-    assert obs_dur == pytest.approx(exp_dur)
-    assert obs_fluence == pytest.approx(exp_fluence)
+        assert obs_dur == pytest.approx(exp_dur)
+        assert obs_fluence == pytest.approx(exp_fluence)
+
+    @pytest.mark.parametrize(*common_args)
+    def test_compress_schedule(self, child_dicts, pulse_history,
+                           exp_fluence):
+        obs_dur = st.compress_schedule(child_dicts, pulse_history)
+
+        assert obs_dur == pytest.approx(exp_fluence)

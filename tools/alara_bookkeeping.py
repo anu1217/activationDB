@@ -1,32 +1,32 @@
-import sqlite3
-import uuid
-
-def populate_table(cur):
-    '''
-    Create the sqlite table and populate it with data. The combination of pulse history, schedule data,
-    flux file, and git hash used must be unique for each entry.
-    '''
-    cur.execute('''
+def populate_table(cur, data_dict):
+    """
+    Create the sqlite table and populate it with data. The combination of input file and output file
+    must be unique for each entry. If a different output file exists for the same input file,
+    the associated git commit hash is necessarily different.
+    :param cur: Cursor object for the SQLite connection
+    :param data_dict: dictionary containing information for the database, with structure:
+    {
+        "id": iterable of str/int,
+        "input_file": iterable of str,
+        "output_file": iterable of str,
+        "flux_file": iterable of str,
+        "git_hash": iterable of str,
+    }
+    """
+    cur.execute(
+        """
     CREATE TABLE IF NOT EXISTS alara_simulations (
         id TEXT PRIMARY KEY,
-        pulse_history TEXT,
-        sched_history TEXT,
+        input_file TEXT,
+        output_file TEXT,
         flux_file TEXT,
         git_hash TEXT,
-        UNIQUE(pulse_history, sched_history, flux_file, git_hash)
+        UNIQUE(input_file, output_file)
         )
-    ''')
+    """
+    )
 
-    cur.executemany("INSERT INTO alara_simulations (id, pulse_history, sched_history, flux_file, git_hash) VALUES (?, ?, ?, ?, ?)", 
-                    [(str(uuid.uuid4()),'ph_1.json', 'sh_1.json', 'flux_file_1', 'git_hash_1'), 
-                     (str(uuid.uuid4()),'ph_2.json', 'sh_2.json', 'flux_file_2', 'git_hash_2')])
-
-def main():
-    con = sqlite3.connect("alara_ids.sqlite")
-    cur = con.cursor()
-    populate_table(cur)
-    con.commit()
-    con.close()
-
-if __name__ == "__main__":
-    main()
+    cur.executemany(
+        "INSERT INTO alara_simulations (id, input_file, output_file, flux_file, git_hash) VALUES (?, ?, ?, ?, ?)",
+        list(zip(*data_dict.values())),
+    )

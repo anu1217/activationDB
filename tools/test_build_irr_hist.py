@@ -30,8 +30,6 @@ def normalize_lines(lines):
                 'delay_dur_unit': 'm'
             }
         ],
-        'flux_name':
-        'flux_4',
         'pulse_history': [(7, 9.5, 'd'), (3, 2.3, 'y')],
         'delay_dur':
         6.3,
@@ -106,8 +104,6 @@ def test_make_pulse_history_block(ph_dict, exp_ph_block):
                 'delay_dur_unit': 'm'
             }
         ],
-        'flux_name':
-        'flux_4',
         'pulse_history': [(7, 9.5, 'd'), (3, 2.3, 'y')],
         'delay_dur':
         6.3,
@@ -130,7 +126,7 @@ def test_make_pulse_history_block(ph_dict, exp_ph_block):
     None,
     "top",
     """schedule top
-        sched_1	flux_4	6.3	m
+        sched_1 pulse_history_1	6.3	m
         7.4	d	flux_3	pulse_history_2	5.33	c
     end
 

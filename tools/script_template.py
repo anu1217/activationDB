@@ -39,9 +39,9 @@ def parse_flux_str(all_flux_entries, num_groups):
             num_groups : total number (int) of energy groups from group structure
     output : flux_array (numpy array of shape # intervals x # energy groups)
     '''
-    num_intervals = len(all_flux_entries) // num_groups
     if len(all_flux_entries) % num_groups != 0:
         raise Exception("The number of intervals must be an integer.")
+    num_intervals = len(all_flux_entries) // num_groups
     flux_array = all_flux_entries.reshape(num_intervals, num_groups)
     return flux_array
 

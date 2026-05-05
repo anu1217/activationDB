@@ -38,11 +38,12 @@ def test_modify_adf_columns(adf):
                 for col in ["num_dens_(atoms/cm3)", "half_life", "block_name"]))
 
 
-def adf_map_flux_tirr(adf, norm_flux_arr, t_irr_arr, num_pulses, duty_cycles):
+def make_use_tirr_mod(adf, norm_flux_arr, t_irr_arr, num_pulses, duty_cycles):
     '''
     Maps each of the number of pulses and duty cycle values from the run label to an iterator,
     from which the corresponding value of the irradiation time is identified. The irradiation
-    time is added to a new column in the adf.
+    time array is added to a new column in the adf by running the map_adf_flux_tirr() method from
+    script_template.py.
     '''
     pulse_num_dc = adf["run_lbl"].str.extract(r"_(\d+)p_(\d+)_").astype(int)
     # Map num_pulses and duty_cycles to an index
@@ -54,12 +55,12 @@ def adf_map_flux_tirr(adf, norm_flux_arr, t_irr_arr, num_pulses, duty_cycles):
          for i, duty_cycle in enumerate(duty_cycles)})
     t_irr_arr_mod = t_irr_arr.T[pulse_idx.to_numpy(),
                                 duty_cycle_idx.to_numpy()]
-    script_temp.map_adf_flux_tirr(adf, norm_flux_arr, t_irr_arr_mod)
+    adf = script_temp.map_adf_flux_tirr(adf, norm_flux_arr, t_irr_arr_mod)
     adf["t_irr"] = aop.convert_times(adf["t_irr"], from_unit="y", to_unit="s")
     return adf
 
 
-def test_adf_map_flux_tirr(adf):
+def test_make_use_tirr_mod(adf):
     '''
     Ensure that two of the run labels are associated with the correct irradiation time.
     '''
@@ -121,9 +122,9 @@ def main():
 
     test_modify_adf_columns(adf)
 
-    adf = adf_map_flux_tirr(adf, norm_flux_arr, t_irr_arr, num_pulses,
+    adf = make_use_tirr_mod(adf, norm_flux_arr, t_irr_arr, num_pulses,
                             duty_cycles)
-    test_adf_map_flux_tirr(adf)
+    test_make_use_tirr_mod(adf)
 
     script_temp.write_to_sqlite(adf)
 

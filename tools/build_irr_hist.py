@@ -9,7 +9,6 @@ as its parent.
 [
 {'type': 'schedule',
     'children': [{...}],
-    'flux_name' : (str),
     'pulse_history': (iterable of (int, float, str)),
     'delay_dur': (float),
     'delay_dur_unit': (str)
@@ -99,7 +98,8 @@ def make_schedule_block(child_dicts, ph_dict, counter=None, sched_name="top"):
 
             current_sched_lines += (
                 f"{child_name}\t"
-                f"{entry['flux_name']}\t"
+                + next(ph_name for ph_name, hist in ph_dict.items()
+                       if entry['pulse_history'] == hist) + "\t"
                 f"{entry['delay_dur']}\t"
                 f"{entry['delay_dur_unit']}\n"
             )

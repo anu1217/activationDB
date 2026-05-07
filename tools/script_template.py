@@ -1,25 +1,6 @@
 import numpy as np
-import pandas as pd
-import alara_output_processing as aop
 import sqlite3
 
-
-def calc_time_params(active_burn_time, duty_cycle_list, num_pulses):
-    '''
-    Uses provided pulsing information to determine dwell time and total irradiation time.
-    Assumes that the active irradiation time per pulse and dwell time between pulses both remain constant in any given simulation.
-    Iterates over the number of pulses, and for each number, calculates dwell time.
-    The duty cycle is defined as the pulse length / (pulse length + dwell time).
-    inputs:
-        active_burn_time : total active irradiation time (float) in any chosen unit
-        duty_cycle_list : list of chosen duty cycles (float)
-        num_pulses : list of number of pulses (int) that the active irradiation period is divided into
-    '''
-    pulse_lengths = active_burn_time / num_pulses
-    rel_dwell_times = (1 - duty_cycle_list) / duty_cycle_list
-    abs_dwell_times = np.outer(rel_dwell_times, pulse_lengths)
-    t_irr_arr = active_burn_time + abs_dwell_times * (num_pulses - 1)
-    return t_irr_arr
 
 def open_flux_file(flux_file):
     with open(flux_file, 'r') as flux_data:
@@ -47,6 +28,11 @@ def parse_flux_str(all_flux_entries, num_groups):
 
 
 def modify_adf_columns(adf):
+    '''
+    Filters the adf for the pre-shutdown state and the number density.
+    Removes columns that do not add information required for the database.
+    :param: adf: ALARA DFrame object
+    '''
     adf = adf.filter_rows(filter_dict={
         "time": -1,
         "variable": adf.VARIABLE_ENUM["Number Density"]
@@ -61,7 +47,15 @@ def modify_adf_columns(adf):
 
     return adf
 
+
 def map_adf_flux_tirr(adf, norm_flux_arr, t_irr_arr_mod):
+    '''
+    Finds the unique block names in the adf and maps the correct flux spectrum
+    to the block. Assigns a column to store irradiation time.
+    :param: norm_flux_arr: numpy array of flux spectrum shape (# intervals x # energy groups)
+    :param: t_irr_arr_mod: numpy array of irradiation times where the total number of entries
+    is the number of rows in the adf
+    '''
 
     block_names = adf['block_name'].unique()
     flux_map = dict(zip(block_names, norm_flux_arr))
@@ -72,20 +66,33 @@ def map_adf_flux_tirr(adf, norm_flux_arr, t_irr_arr_mod):
     return adf
 
 
-def write_to_sqlite(adf):
-    sqlite_conn = sqlite3.connect('activation_results.db')
-    adf.to_sql('number_densities',
-               sqlite_conn,
-               if_exists='append',
-               method="multi")
-
+def write_to_sqlite(adf, db_name="activation_results.db"):
+    '''
+    Initialize a connection to a SQLite database, and write the adf
+    to it. Catches any errors produced during this process.
+    '''
     try:
-        cursor = sqlite_conn.cursor()
+        sqlite_conn = sqlite3.connect(db_name)
+        adf.to_sql('number_densities',
+                   sqlite_conn,
+                   if_exists='append',
+                   method="multi")
         sqlite_conn.commit()
-        result = cursor.fetchall()
-        cursor.close()
+    except sqlite3.OperationalError as error:
+        print(error)
+    return sqlite_conn.cursor()
 
-        if sqlite_conn:
-            sqlite_conn.close()
+
+def close_sqlite_conn(cursor):
+    '''
+    Closes inidividual SQLite cursor objects, and the connection
+    to the database. To be executed after running write_to_sqlite()
+    or anytime a SQLite connection has been established.
+    :param: cursor: SQLite cursor object
+    '''
+    try:
+        cursor.close()
+        if cursor.connection:
+            cursor.connection.close()
     except sqlite3.OperationalError as error:
         print(error)

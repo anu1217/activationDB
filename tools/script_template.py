@@ -27,7 +27,7 @@ def parse_flux_str(all_flux_entries, num_groups):
     return flux_array
 
 
-def modify_adf_columns(adf):
+def modify_adf_for_db(adf):
     '''
     Filters the adf for the pre-shutdown state and the number density.
     Removes columns that do not add information required for the database.

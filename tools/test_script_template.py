@@ -19,13 +19,11 @@ def test_modify_adf_for_db(adf):
                 for col in ["num_dens_(atoms/cm3)", "half_life", "block_name"]))
     return adf
     
-def test_write_to_sqlite(adf):
-    cursor = script_temp.write_to_sqlite(adf, db_name = ":memory:")
+def test_write_to_sqlite(adf, cursor):
     cursor.execute("SELECT * FROM number_densities")
     result = cursor.fetchall()
     assert len(result) == len(adf["half_life"])
-    assert len(result[0]) == 6
-    return cursor    
+    assert len(result[0]) == 6    
 
 def test_close_sqlite_conn(cursor):
     script_temp.close_sqlite_conn(cursor)
@@ -44,7 +42,8 @@ def main():
         "half_life": ["-1"]*2,
         "run_lbl": ["test_case", "new_test_case"]})
     adf = test_modify_adf_for_db(adf)
-    cursor = test_write_to_sqlite(adf)
+    cursor = script_temp.write_to_sqlite(adf, db_name = ":memory:")
+    test_write_to_sqlite(adf, cursor)
     test_close_sqlite_conn(cursor)
 
 if __name__ == "__main__":

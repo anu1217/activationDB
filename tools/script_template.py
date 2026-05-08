@@ -16,15 +16,25 @@ def parse_flux_str(all_flux_entries, num_groups):
     Uses provided list of flux lines and group structure applied to the run to create an array of flux entries, with:
     # rows = # of intervals = total # flux entries / # group structure bins
     # columns = # group structure bins
-    input : all_flux_entries (data (numpy array) from ALARA flux file)
-            num_groups : total number (int) of energy groups from group structure
-    output : flux_array (numpy array of shape # intervals x # energy groups)
+    :param: all_flux_entries: (data (numpy array) from ALARA flux file)
+    :param: num_groups : total number (int) of energy groups from group structure
     '''
     if len(all_flux_entries) % num_groups != 0:
         raise Exception("The number of intervals must be an integer.")
     num_intervals = len(all_flux_entries) // num_groups
     flux_array = all_flux_entries.reshape(num_intervals, num_groups)
     return flux_array
+
+def normalize_flux(flux_array):
+    '''
+    Obtain the total flux by summing over the bin widths of the flux array,
+    then normalize the spectrum by the total flux in each interval.
+    :param: flux_array: (numpy array of shape # intervals x # energy groups)
+    '''
+    total_flux = np.sum(flux_array, axis=1)
+    #norm_flux_arr = 2D array of shape num_intervals x num_groups
+    norm_flux_arr = flux_array / total_flux.reshape(len(total_flux), 1)
+    return norm_flux_arr
 
 
 def modify_adf_for_db(adf):

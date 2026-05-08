@@ -23,10 +23,7 @@ def test_write_to_sqlite(adf, cursor):
     cursor.execute("SELECT * FROM number_densities")
     result = cursor.fetchall()
     assert len(result) == len(adf["half_life"])
-    assert len(result[0]) == 6    
-
-def test_close_sqlite_conn(cursor):
-    script_temp.close_sqlite_conn(cursor)
+    assert len(result[0]) == 6
 
 def main():
     adf = aop.ALARADFrame(data=
@@ -44,7 +41,7 @@ def main():
     adf = test_modify_adf_for_db(adf)
     cursor = script_temp.write_to_sqlite(adf, db_name = ":memory:")
     test_write_to_sqlite(adf, cursor)
-    test_close_sqlite_conn(cursor)
+    script_temp.close_sqlite_conn(cursor) #this function has a built-in test in the form of catching any operational errors
 
 if __name__ == "__main__":
     main()

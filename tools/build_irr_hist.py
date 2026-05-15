@@ -29,10 +29,10 @@ as its parent.
 
 def make_ph_dict(child_dicts, ph_counter=None):
     '''
-    Create a dictionary where the key is the tuple corresponding to
-    the pulse history (number of pulses, pulse dwell time, and the unit of the dwell time),
-    and the value is a name assigned to the pulse history.
-    Each unique pulse history tuple in the dictionary maps to a single pulse history name.
+    Create a dictionary where the key is an iterable of tuples, with each tuple containing
+    the number of pulses (int), pulse dwell time (float), and the unit of the dwell time (str).
+    The value is a name assigned to the pulse history.
+    Each unique pulse history tuple maps to a single pulse history name.
     '''
     if ph_counter is None:
         ph_counter = count(1)

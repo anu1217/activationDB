@@ -29,23 +29,25 @@ as its parent.
 
 def make_ph_dict(child_dicts, ph_counter=None):
     '''
-    Create a dictionary where the key is the name of the pulse history,
-    and the value is a tuple corresponding to the 
-    number of pulses, pulse dwell time, and the unit of the dwell time.
-    Each pulse history in the dictionary is unique.
+    Create a dictionary where the key is the tuple corresponding to
+    the pulse history (number of pulses, pulse dwell time, and the unit of the dwell time),
+    and the value is a name assigned to the pulse history.
+    Each unique pulse history tuple in the dictionary maps to a single pulse history name.
     '''
     if ph_counter is None:
         ph_counter = count(1)
 
     ph_dict = {}
 
-    for entry in child_dicts:
-        ph_dict[f'pulse_history_{next(ph_counter)}'] = entry['pulse_history']
+    for child_dict in child_dicts:
+        ph_dict[
+            child_dict['pulse_history']] = f'pulse_history_{next(ph_counter)}'
 
-        if entry['type'] == 'schedule':
-            ph_dict |= make_ph_dict(entry['children'], ph_counter)
+        if child_dict['type'] == 'schedule':
+            ph_dict |= make_ph_dict(child_dict['children'], ph_counter)
 
     return ph_dict
+
 
 def make_flux_block(flux_dict):
     '''
@@ -70,11 +72,10 @@ def make_pulse_history_block(ph_dict):
     """)
 
     all_ph_lines = ""
-    for ph_name in ph_dict:
-        ph_list = ph_dict[ph_name]
+    for ph_list, ph_name in ph_dict:
         ph_lines = ""
-        for entry in ph_list:
-            ph_lines += (f'{entry[0]}\t' + f'{entry[1]}\t' + f'{entry[2]}' +
+        for level in ph_list:
+            ph_lines += (f'{level[0]}\t' + f'{level[1]}\t' + f'{level[2]}' +
                          '\n')
         all_ph_lines += template_obj.substitute(ph_name=ph_name, ph_lines=ph_lines)
     return all_ph_lines + "\n"
@@ -92,30 +93,28 @@ def make_schedule_block(child_dicts, ph_dict, sched_counter=None, sched_name="to
     end
     """)
 
-    for entry in child_dicts:
-        if entry['type'] == 'pulse_entry':
+    for child_dict in child_dicts:
+        if child_dict['type'] == 'pulse_entry':
             current_sched_lines += (
-                f"{entry['pulse_length']}\t"
-                f"{entry['pulse_length_unit']}\t"
-                f"{entry['flux_name']}\t"
-                + next(ph_name for ph_name, hist in ph_dict.items()
-                       if entry['pulse_history'] == hist) + "\t"
-                f"{entry['delay_dur']}\t"
-                f"{entry['delay_dur_unit']}\n"
+                f"{child_dict['pulse_length']}\t"
+                f"{child_dict['pulse_length_unit']}\t"
+                f"{child_dict['flux_name']}\t"
+                f"{ph_dict[child_dict['pulse_history']]}\t"
+                f"{child_dict['delay_dur']}\t"
+                f"{child_dict['delay_dur_unit']}\n"
             )
 
-        elif entry['type'] == 'schedule':
+        elif child_dict['type'] == 'schedule':
             child_name = f"sched_{next(sched_counter)}"
 
             current_sched_lines += (
                 f"{child_name}\t"
-                + next(ph_name for ph_name, hist in ph_dict.items()
-                       if entry['pulse_history'] == hist) + "\t"
-                f"{entry['delay_dur']}\t"
-                f"{entry['delay_dur_unit']}\n"
+                f"{ph_dict[child_dict['pulse_history']]}\t"
+                f"{child_dict['delay_dur']}\t"
+                f"{child_dict['delay_dur_unit']}\n"
             )
             child_block = make_schedule_block(
-                entry['children'],
+                child_dict['children'],
                 ph_dict,
                 sched_counter,
                 sched_name=child_name
@@ -158,6 +157,7 @@ def make_input_file(flux_lines,
         number_density
     end
     """
-    assembled_lines = "geometry rectangular\n" + vol_lines + load_lines + mix_lines + data_output_lines + "\n" + flux_lines + all_sched_lines + "\n" + all_ph_lines + f"truncation {trunc_tolerance}"
+    assembled_lines = "geometry rectangular\n" + vol_lines + load_lines + mix_lines + data_output_lines
+    + "\n" + flux_lines + all_sched_lines + "\n" + all_ph_lines + f"truncation {trunc_tolerance}"
     with open(input_filename, 'w') as new_inp:
         new_inp.write(assembled_lines)

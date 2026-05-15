@@ -18,7 +18,7 @@ as its parent.
 {'type': 'pulse_entry',
     'pulse_length': (float),
     'pulse_length_unit': (str),
-    'flux_name' : (str),
+    'flux_filepath' : (str),
     'pulse_history': (iterable of (int, float, str)),
     'delay_dur' : (float),
     'delay_dur_unit': (str)
@@ -40,8 +40,8 @@ def make_ph_dict(child_dicts, ph_counter=None):
     ph_dict = {}
 
     for child_dict in child_dicts:
-        ph_dict[
-            tuple(child_dict['pulse_history'])] = f'pulse_history_{next(ph_counter)}'
+        ph_dict[tuple(
+            child_dict['pulse_history'])] = f'pulse_history_{next(ph_counter)}'
 
         if child_dict['type'] == 'schedule':
             ph_dict |= make_ph_dict(child_dict['children'], ph_counter)
@@ -49,16 +49,29 @@ def make_ph_dict(child_dicts, ph_counter=None):
     return ph_dict
 
 
+def make_flux_dict(child_dicts, flux_counter=None):
+    if flux_counter is None:
+        flux_counter = count(1)
+    flux_dict = {}
+    for child_dict in child_dicts:
+        if child_dict['type'] == 'pulse_entry':
+            flux_dict[
+                child_dict['flux_filepath']] = f'flux_{next(flux_counter)}'
+        elif child_dict['type'] == 'schedule':
+            flux_dict |= make_flux_dict(child_dict['children'], flux_counter)
+
+    return flux_dict
+
+
 def make_flux_block(flux_dict):
     '''
     Create the flux block of an ALARA input file.
-    :param: flux_dict: dictionary with flux name (str) as key and flux filepath (str) as value.
     '''
     flux_template_string = "flux $flux_name $fluxin_file 0 default"
     flux_temp_obj = string.Template(flux_template_string)
     flux_lines = ""
-    for name in flux_dict:
-        flux_lines += flux_temp_obj.substitute(flux_name = name, fluxin_file = flux_dict[name])
+    for flux_path, name in flux_dict.items():
+        flux_lines += flux_temp_obj.substitute(flux_name = name, fluxin_file = flux_path)
     return flux_lines + "\n"
 
 
@@ -82,7 +95,7 @@ def make_pulse_history_block(ph_dict):
     return all_ph_lines + "\n"
 
 
-def make_schedule_block(child_dicts, ph_dict, sched_counter=None, sched_name="top"):
+def make_schedule_block(child_dicts, ph_dict, flux_dict, sched_counter=None, sched_name="top"):
     '''
     Creates the lines comprising the schedule block of an ALARA input file.
     '''
@@ -100,7 +113,7 @@ def make_schedule_block(child_dicts, ph_dict, sched_counter=None, sched_name="to
             current_sched_lines += (
                 f"{child_dict['pulse_length']}\t"
                 f"{child_dict['pulse_length_unit']}\t"
-                f"{child_dict['flux_name']}\t"
+                f"{flux_dict[child_dict['flux_filepath']]}\t"
                 f"{ph_dict[tuple(child_dict['pulse_history'])]}\t"
                 f"{child_dict['delay_dur']}\t"
                 f"{child_dict['delay_dur_unit']}\n"
@@ -118,6 +131,7 @@ def make_schedule_block(child_dicts, ph_dict, sched_counter=None, sched_name="to
             child_block = make_schedule_block(
                 child_dict['children'],
                 ph_dict,
+                flux_dict,
                 sched_counter,
                 sched_name=child_name
             )

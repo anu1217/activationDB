@@ -16,7 +16,7 @@ def normalize_lines(lines):
                 'type': 'pulse_entry',
                 'pulse_length': 7.6,
                 'pulse_length_unit': 'm',
-                'flux_name': 'flux_1',
+                'flux_filepath': './ex_flux',
                 'pulse_history': [(3, 7.9, 'm'), (2, 5.5, 's'), (9, 1.2, 'c')],
                 'delay_dur': 5.1,
                 'delay_dur_unit': 's'
@@ -24,7 +24,7 @@ def normalize_lines(lines):
                 'type': 'pulse_entry',
                 'pulse_length': 7.6,
                 'pulse_length_unit': 's',
-                'flux_name': 'flux_2',
+                'flux_filepath': '../flux_file',
                 'pulse_history': [(1, 8.0, 'm'), (2, 3, 's'), (9, 1.1, 'c')],
                 'delay_dur': 5.8,
                 'delay_dur_unit': 'm'
@@ -39,7 +39,7 @@ def normalize_lines(lines):
         'type': 'pulse_entry',
         'pulse_length': 7.4,
         'pulse_length_unit': 'd',
-        'flux_name': 'flux_3',
+        'flux_filepath': './iter_flux',
         'pulse_history': [(3, 7.9, 'm'), (2, 5.5, 's'), (9, 1.2, 'c')],
         'delay_dur': 5.33,
         'delay_dur_unit': 'c'
@@ -80,7 +80,7 @@ def test_make_pulse_history_block(ph_dict, exp_ph_block):
     obs_ph_block = build_irr_hist.make_pulse_history_block(ph_dict)
     assert normalize_lines(obs_ph_block) == normalize_lines(exp_ph_block)
 
-@pytest.mark.parametrize("child_dicts, ph_dict, counter, sched_name, exp_sched_block", [
+@pytest.mark.parametrize("child_dicts, ph_dict, flux_dict, counter, sched_name, exp_sched_block", [
     ([{
         'type':
         'schedule',
@@ -89,7 +89,7 @@ def test_make_pulse_history_block(ph_dict, exp_ph_block):
                 'type': 'pulse_entry',
                 'pulse_length': 7.6,
                 'pulse_length_unit': 'm',
-                'flux_name': 'flux_1',
+                'flux_filepath': './iter_flux_2',
                 'pulse_history': [(3, 7.9, 'm'), (2, 5.5, 's'), (9, 1.2, 'c')],
                 'delay_dur': 5.1,
                 'delay_dur_unit': 's'
@@ -97,7 +97,7 @@ def test_make_pulse_history_block(ph_dict, exp_ph_block):
                 'type': 'pulse_entry',
                 'pulse_length': 7.6,
                 'pulse_length_unit': 's',
-                'flux_name': 'flux_2',
+                'flux_filepath': '../frascati_flux_1',
                 'pulse_history': [(1, 8.0, 'm'), (2, 3, 's'), (9, 1.1, 'c')],
                 'delay_dur': 5.8,
                 'delay_dur_unit': 'm'
@@ -112,7 +112,7 @@ def test_make_pulse_history_block(ph_dict, exp_ph_block):
         'type': 'pulse_entry',
         'pulse_length': 7.4,
         'pulse_length_unit': 'd',
-        'flux_name': 'flux_3',
+        'flux_filepath': '../frascati_flux_1',
         'pulse_history': [(3, 7.9, 'm'), (2, 5.5, 's'), (9, 1.2, 'c')],
         'delay_dur': 5.33,
         'delay_dur_unit': 'c'
@@ -121,6 +121,10 @@ def test_make_pulse_history_block(ph_dict, exp_ph_block):
         ((7, 9.5, 'd'), (3, 2.3, 'y')): 'pulse_history_1',
         ((3, 7.9, 'm'), (2, 5.5, 's'), (9, 1.2, 'c')): 'pulse_history_2',
         ((1, 8.0, 'm'), (2, 3, 's'), (9, 1.1, 'c')): 'pulse_history_3'
+    },
+    {
+        './iter_flux_2' : 'flux_1',
+        '../frascati_flux_1' : 'flux_3'
     },
     None,
     "top",
@@ -131,10 +135,10 @@ def test_make_pulse_history_block(ph_dict, exp_ph_block):
 
     schedule sched_1
         7.6	m	flux_1	pulse_history_2	5.1	s
-        7.6	s	flux_2	pulse_history_3	5.8	m
+        7.6	s	flux_3	pulse_history_3	5.8	m
     end""")
     ])    
 
-def test_make_schedule_block(child_dicts, ph_dict, counter, sched_name, exp_sched_block):
-    obs_sched_block = build_irr_hist.make_schedule_block(child_dicts, ph_dict, counter, sched_name)
+def test_make_schedule_block(child_dicts, ph_dict, flux_dict, counter, sched_name, exp_sched_block):
+    obs_sched_block = build_irr_hist.make_schedule_block(child_dicts, ph_dict, flux_dict, counter, sched_name)
     assert normalize_lines(obs_sched_block) == normalize_lines(exp_sched_block)

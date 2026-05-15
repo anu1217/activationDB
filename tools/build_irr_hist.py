@@ -147,12 +147,14 @@ def make_schedule_block(child_dicts, ph_dict, flux_dict, sched_counter=None, sch
     return all_sched_lines
 
 
-def make_input_file(flux_lines,
-                    all_ph_lines,
-                    all_sched_lines,
-                    trunc_tolerance,
-                    input_filename,
-                    nuclib="nuclib.std"):
+def read_nuclib(nuclib="nuclib.std"):
+    nuclib_lines = open(
+        nuclib, 'r').readlines()
+    return nuclib_lines
+
+
+def make_input_lines(flux_lines, all_ph_lines, all_sched_lines,
+                     trunc_tolerance, nuclib_lines):
     """
     Collect volume, loading, and mixture blocks from ALARA tool all_nuc_inp.py.
     Assemble with data and output block-related lines that are expected to change infrequently.
@@ -162,9 +164,8 @@ def make_input_file(flux_lines,
     :param: input_filename (str)
     :param: nuclib (str, path to ALARA nuclide library)
     """
-    vol_lines, load_lines, mix_lines = all_nuc_inp.make_volume_block(open(
-        nuclib, 'r').readlines(),
-                                                                     volume=1)
+    vol_lines, load_lines, mix_lines = make_volume_block(nuclib_lines,
+                                                         volume=1)
     data_output_lines = """material_lib matlib.sample
     element_lib elelib.std
     data_library alaralib fendl2bin
@@ -174,7 +175,11 @@ def make_input_file(flux_lines,
         number_density
     end
     """
-    assembled_lines = "geometry rectangular\n" + vol_lines + load_lines + mix_lines + data_output_lines
-    + "\n" + flux_lines + all_sched_lines + "\n" + all_ph_lines + f"truncation {trunc_tolerance}"
+    assembled_lines = "geometry rectangular\n" + vol_lines + load_lines + mix_lines + data_output_lines \
+                    + "\n" + flux_lines + all_sched_lines + "\n" + all_ph_lines + f"truncation {trunc_tolerance}"
+    return assembled_lines
+
+
+def write_inp_file(assembled_lines, input_filename):
     with open(input_filename, 'w') as new_inp:
         new_inp.write(assembled_lines)

@@ -1,5 +1,6 @@
 import build_irr_hist
 import pytest
+from all_nuc_inp import make_volume_block
 
 def normalize_lines(lines):
     '''
@@ -124,7 +125,7 @@ def test_make_flux_block(flux_dict, exp_flux_block):
         ((3, 7.9, 'm'), (2, 5.5, 's'), (9, 1.2, 'c')): 'pulse_history_2',
         ((1, 8.0, 'm'), (2, 3, 's'), (9, 1.1, 'c')): 'pulse_history_3'
     },
-     """pulsehistory  pulse_history_1
+    """pulsehistory  pulse_history_1
         7	9.5	d
         3	2.3	y
     end
@@ -208,3 +209,104 @@ def test_make_schedule_block(child_dicts, ph_dict, flux_dict, sched_counter,
     obs_sched_block = build_irr_hist.make_schedule_block(
         child_dicts, ph_dict, flux_dict, sched_counter, sched_name)
     assert normalize_lines(obs_sched_block) == normalize_lines(exp_sched_block)
+
+@pytest.mark.parametrize("flux_lines, all_ph_lines, all_sched_lines, trunc_tolerance, nuclib_lines, exp_assembled_lines", [
+    ("""
+    flux flux_1 ./ex_flux 0 default
+    flux flux_3 ../flux_file 0 default
+    """,
+    """pulsehistory  pulse_history_1
+        7	9.5	d
+        3	2.3	y
+    end
+    pulsehistory  pulse_history_2
+        3	7.9	m
+        2	5.5	s
+        9	1.2	c
+    end
+    pulsehistory  pulse_history_3
+        1	8.0	m
+        2	3	s
+        9	1.1	c
+    end
+    """,
+    """schedule top
+        sched_1 pulse_history_1	6.3	m
+        7.4	d	flux_3	pulse_history_2	5.33	c
+    end
+
+    schedule sched_1
+        7.6	m	flux_1	pulse_history_2	5.1	s
+        7.6	s	flux_3	pulse_history_3	5.8	m
+    end
+    """,
+    1e-05,
+    ['h       0.100790E+01   1      0.899000E-04   2\n',
+    '1      0.999850E+02\n',
+    '2      0.150000E-01\n',
+    'h:1   1.00783E+00   1   8.98933E-05 1\n',
+    '1 100\n',
+    'h:2   2.01410E+00   1   1.79649E-04 1\n',
+    '2 100\n'
+    ],
+    """
+    geometry rectangular
+    volume
+        1    h:1
+        1    h:2
+    end    
+    mat_loading
+        h:1 mix_h:1
+        h:2 mix_h:2
+    end
+    mixture mix_h:1
+        element h:1 1 1.0
+    end
+    mixture mix_h:2
+        element h:2 1 1.0
+    end
+    material_lib matlib.sample
+    element_lib elelib.std
+    data_library alaralib fendl2bin
+
+    output zone
+        specific_activity
+        number_density
+    end
+    flux flux_1 ./ex_flux 0 default
+    flux flux_3 ../flux_file 0 default
+    schedule top
+        sched_1 pulse_history_1	6.3	m
+        7.4	d	flux_3	pulse_history_2	5.33	c
+    end
+
+    schedule sched_1
+        7.6	m	flux_1	pulse_history_2	5.1	s
+        7.6	s	flux_3	pulse_history_3	5.8	m
+    end
+    pulsehistory  pulse_history_1
+        7	9.5	d
+        3	2.3	y
+    end
+    pulsehistory  pulse_history_2
+        3	7.9	m
+        2	5.5	s
+        9	1.2	c
+    end
+    pulsehistory  pulse_history_3
+        1	8.0	m
+        2	3	s
+        9	1.1	c
+    end
+    truncation 1e-05
+    """
+    )
+    ])
+
+def test_make_input_lines(flux_lines, all_ph_lines, all_sched_lines,
+                          trunc_tolerance, nuclib_lines, exp_assembled_lines):
+    obs_assembled_lines = build_irr_hist.make_input_lines(
+        flux_lines, all_ph_lines, all_sched_lines, trunc_tolerance,
+        nuclib_lines)
+    assert normalize_lines(obs_assembled_lines) == normalize_lines(
+        exp_assembled_lines)

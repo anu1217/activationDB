@@ -27,23 +27,23 @@ as its parent.
 """
 
 
-def make_ph_dict(child_dicts, counter=None):
+def make_ph_dict(child_dicts, ph_counter=None):
     '''
     Create a dictionary where the key is the name of the pulse history,
     and the value is a tuple corresponding to the 
     number of pulses, pulse dwell time, and the unit of the dwell time.
     Each pulse history in the dictionary is unique.
     '''
-    if counter is None:
-        counter = count(1)
+    if ph_counter is None:
+        ph_counter = count(1)
 
     ph_dict = {}
 
     for entry in child_dicts:
-        ph_dict[f'pulse_history_{next(counter)}'] = entry['pulse_history']
+        ph_dict[f'pulse_history_{next(ph_counter)}'] = entry['pulse_history']
 
         if entry['type'] == 'schedule':
-            ph_dict |= make_ph_dict(entry['children'], counter)
+            ph_dict |= make_ph_dict(entry['children'], ph_counter)
 
     return ph_dict
 
@@ -64,11 +64,10 @@ def make_pulse_history_block(ph_dict):
     '''
     Creates the lines comprising the pulse history block of an ALARA input file.
     '''
-    ph_template_string = """pulsehistory  $ph_name
+    template_obj = string.Template("""pulsehistory  $ph_name
     $ph_lines
     end
-    """
-    template_obj = string.Template(ph_template_string)
+    """)
 
     all_ph_lines = ""
     for ph_name in ph_dict:
@@ -80,19 +79,18 @@ def make_pulse_history_block(ph_dict):
         all_ph_lines += template_obj.substitute(ph_name=ph_name, ph_lines=ph_lines)
     return all_ph_lines + "\n"
 
-def make_schedule_block(child_dicts, ph_dict, counter=None, sched_name="top"):
+def make_schedule_block(child_dicts, ph_dict, sched_counter=None, sched_name="top"):
     '''
     Creates the lines comprising the schedule block of an ALARA input file.
     '''
-    if counter is None:
-        counter = count(1)
-    sched_template_string = """schedule $sched_name
-    $sched_lines
-    end
-    """
+    if sched_counter is None:
+        sched_counter = count(1)
     current_sched_lines = ""
     child_lines = ""
-    sched_temp_obj = string.Template(sched_template_string)
+    sched_temp_obj = string.Template("""schedule $sched_name
+    $sched_lines
+    end
+    """)
 
     for entry in child_dicts:
         if entry['type'] == 'pulse_entry':
@@ -107,7 +105,7 @@ def make_schedule_block(child_dicts, ph_dict, counter=None, sched_name="top"):
             )
 
         elif entry['type'] == 'schedule':
-            child_name = f"sched_{next(counter)}"
+            child_name = f"sched_{next(sched_counter)}"
 
             current_sched_lines += (
                 f"{child_name}\t"
@@ -119,7 +117,7 @@ def make_schedule_block(child_dicts, ph_dict, counter=None, sched_name="top"):
             child_block = make_schedule_block(
                 entry['children'],
                 ph_dict,
-                counter,
+                sched_counter,
                 sched_name=child_name
             )
 

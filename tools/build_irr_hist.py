@@ -130,7 +130,7 @@ def make_schedule_block(child_dicts, ph_dict, counter=None, sched_name="top"):
         sched_lines=current_sched_lines
     )
     all_sched_lines = current_sched_lines + child_lines
-    return all_sched_lines + "\n"
+    return all_sched_lines
 
 
 def make_input_file(flux_lines,
@@ -160,8 +160,6 @@ def make_input_file(flux_lines,
         number_density
     end
     """
-    trunc_tol_obj = string.Template("truncation $trunc_tol")
-    trunc_tol_obj.substitute(trunc_tol=trunc_tolerance)
-    assembled_lines = "geometry rectangular\n" + vol_lines + load_lines + mix_lines + data_output_lines + "\n" + flux_lines + all_sched_lines + all_ph_lines + f"truncation {trunc_tolerance}"
+    assembled_lines = "geometry rectangular\n" + vol_lines + load_lines + mix_lines + data_output_lines + "\n" + flux_lines + all_sched_lines + "\n" + all_ph_lines + f"truncation {trunc_tolerance}"
     with open(input_filename, 'w') as new_inp:
         new_inp.write(assembled_lines)

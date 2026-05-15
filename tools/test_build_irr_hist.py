@@ -100,7 +100,23 @@ def test_make_ph_dict(child_dicts, ph_counter, exp_ph_dict):
 
 def test_make_flux_dict(child_dicts, flux_counter, exp_flux_dict):
     obs_flux_dict = build_irr_hist.make_flux_dict(child_dicts, flux_counter)
-    assert obs_flux_dict == exp_flux_dict    
+    assert obs_flux_dict == exp_flux_dict
+
+@pytest.mark.parametrize("flux_dict, exp_flux_block", [
+    ({
+        './ex_flux' : 'flux_1',
+        '../flux_file' : 'flux_3'
+    },
+    """
+    flux flux_1 ./ex_flux 0 default
+    flux flux_3 ../flux_file 0 default
+    """
+    )
+    ])
+
+def test_make_flux_block(flux_dict, exp_flux_block):
+    obs_flux_block = build_irr_hist.make_flux_block(flux_dict)
+    assert normalize_lines(obs_flux_block) == normalize_lines(exp_flux_block)
 
 @pytest.mark.parametrize("ph_dict, exp_ph_block", [
     ({

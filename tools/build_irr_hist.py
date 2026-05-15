@@ -67,11 +67,12 @@ def make_flux_block(flux_dict):
     '''
     Create the flux block of an ALARA input file.
     '''
-    flux_template_string = "flux $flux_name $fluxin_file 0 default"
-    flux_temp_obj = string.Template(flux_template_string)
+    flux_temp_obj = string.Template("""flux $flux_name $fluxin_file 0 default
+    """)
     flux_lines = ""
     for flux_path, name in flux_dict.items():
-        flux_lines += flux_temp_obj.substitute(flux_name = name, fluxin_file = flux_path)
+        flux_lines += flux_temp_obj.substitute(flux_name=name,
+                                               fluxin_file=flux_path)
     return flux_lines + "\n"
 
 

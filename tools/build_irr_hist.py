@@ -41,7 +41,7 @@ def make_ph_dict(child_dicts, ph_counter=None):
 
     for child_dict in child_dicts:
         ph_dict[
-            child_dict['pulse_history']] = f'pulse_history_{next(ph_counter)}'
+            tuple(child_dict['pulse_history'])] = f'pulse_history_{next(ph_counter)}'
 
         if child_dict['type'] == 'schedule':
             ph_dict |= make_ph_dict(child_dict['children'], ph_counter)
@@ -72,13 +72,15 @@ def make_pulse_history_block(ph_dict):
     """)
 
     all_ph_lines = ""
-    for ph_list, ph_name in ph_dict:
+    for ph_list, ph_name in ph_dict.items():
         ph_lines = ""
         for level in ph_list:
             ph_lines += (f'{level[0]}\t' + f'{level[1]}\t' + f'{level[2]}' +
                          '\n')
-        all_ph_lines += template_obj.substitute(ph_name=ph_name, ph_lines=ph_lines)
+        all_ph_lines += template_obj.substitute(ph_name=ph_name,
+                                                ph_lines=ph_lines)
     return all_ph_lines + "\n"
+
 
 def make_schedule_block(child_dicts, ph_dict, sched_counter=None, sched_name="top"):
     '''
@@ -99,7 +101,7 @@ def make_schedule_block(child_dicts, ph_dict, sched_counter=None, sched_name="to
                 f"{child_dict['pulse_length']}\t"
                 f"{child_dict['pulse_length_unit']}\t"
                 f"{child_dict['flux_name']}\t"
-                f"{ph_dict[child_dict['pulse_history']]}\t"
+                f"{ph_dict[tuple(child_dict['pulse_history'])]}\t"
                 f"{child_dict['delay_dur']}\t"
                 f"{child_dict['delay_dur_unit']}\n"
             )
@@ -109,7 +111,7 @@ def make_schedule_block(child_dicts, ph_dict, sched_counter=None, sched_name="to
 
             current_sched_lines += (
                 f"{child_name}\t"
-                f"{ph_dict[child_dict['pulse_history']]}\t"
+                f"{ph_dict[tuple(child_dict['pulse_history'])]}\t"
                 f"{child_dict['delay_dur']}\t"
                 f"{child_dict['delay_dur_unit']}\n"
             )

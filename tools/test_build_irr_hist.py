@@ -44,10 +44,9 @@ def normalize_lines(lines):
         'delay_dur': 5.33,
         'delay_dur_unit': 'c'
     }], None, {
-        'pulse_history_1': [(7, 9.5, 'd'), (3, 2.3, 'y')],
-        'pulse_history_2': [(3, 7.9, 'm'), (2, 5.5, 's'), (9, 1.2, 'c')],
-        'pulse_history_3': [(1, 8.0, 'm'), (2, 3, 's'), (9, 1.1, 'c')],
-        'pulse_history_4': [(3, 7.9, 'm'), (2, 5.5, 's'), (9, 1.2, 'c')]
+        ((7, 9.5, 'd'), (3, 2.3, 'y')) : 'pulse_history_1',
+        ((3, 7.9, 'm'), (2, 5.5, 's'), (9, 1.2, 'c')): 'pulse_history_4',
+        ((1, 8.0, 'm'), (2, 3, 's'), (9, 1.1, 'c')) : 'pulse_history_3'
     })
 ])
 
@@ -57,9 +56,9 @@ def test_make_ph_dict(child_dicts, counter, exp_ph_dict):
 
 @pytest.mark.parametrize("ph_dict, exp_ph_block", [
     ({
-        'pulse_history_1': [(7, 9.5, 'd'), (3, 2.3, 'y')],
-        'pulse_history_2': [(3, 7.9, 'm'), (2, 5.5, 's'), (9, 1.2, 'c')],
-        'pulse_history_3': [(1, 8.0, 'm'), (2, 3, 's'), (9, 1.1, 'c')]
+        ((7, 9.5, 'd'), (3, 2.3, 'y')): 'pulse_history_1',
+        ((3, 7.9, 'm'), (2, 5.5, 's'), (9, 1.2, 'c')): 'pulse_history_2',
+        ((1, 8.0, 'm'), (2, 3, 's'), (9, 1.1, 'c')): 'pulse_history_3'
     },
      """pulsehistory  pulse_history_1
         7	9.5	d
@@ -119,9 +118,9 @@ def test_make_pulse_history_block(ph_dict, exp_ph_block):
         'delay_dur_unit': 'c'
     }],
     {
-        'pulse_history_1': [(7, 9.5, 'd'), (3, 2.3, 'y')],
-        'pulse_history_2': [(3, 7.9, 'm'), (2, 5.5, 's'), (9, 1.2, 'c')],
-        'pulse_history_3': [(1, 8.0, 'm'), (2, 3, 's'), (9, 1.1, 'c')]
+        ((7, 9.5, 'd'), (3, 2.3, 'y')): 'pulse_history_1',
+        ((3, 7.9, 'm'), (2, 5.5, 's'), (9, 1.2, 'c')): 'pulse_history_2',
+        ((1, 8.0, 'm'), (2, 3, 's'), (9, 1.1, 'c')): 'pulse_history_3'
     },
     None,
     "top",

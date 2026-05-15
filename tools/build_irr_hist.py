@@ -1,5 +1,6 @@
 import string
 from itertools import count
+from all_nuc_inp import make_volume_block
 """
 The following data structure (child_dicts) is
 an iterable of dictionaries, where each dictionary contains the details
@@ -25,6 +26,7 @@ as its parent.
 ]
 """
 
+
 def make_ph_dict(child_dicts, counter=None):
     '''
     Create a dictionary where the key is the name of the pulse history,
@@ -45,6 +47,18 @@ def make_ph_dict(child_dicts, counter=None):
 
     return ph_dict
 
+def make_flux_block(flux_dict):
+    '''
+    Create the flux block of an ALARA input file.
+    :param: flux_dict: dictionary with flux name (str) as key and flux filepath (str) as value.
+    '''
+    flux_template_string = "flux $flux_name $fluxin_file 0 default"
+    flux_temp_obj = string.Template(flux_template_string)
+    flux_lines = ""
+    for name in flux_dict:
+        flux_lines += flux_temp_obj.substitute(flux_name = name, fluxin_file = flux_dict[name])
+    return flux_lines + "\n"
+
 
 def make_pulse_history_block(ph_dict):
     '''
@@ -58,14 +72,13 @@ def make_pulse_history_block(ph_dict):
 
     all_ph_lines = ""
     for ph_name in ph_dict:
-        ph_iter = ph_dict[ph_name]
+        ph_list = ph_dict[ph_name]
         ph_lines = ""
-        for entry in ph_iter:
+        for entry in ph_list:
             ph_lines += (f'{entry[0]}\t' + f'{entry[1]}\t' + f'{entry[2]}' +
                          '\n')
-        child_lines = template_obj.substitute(ph_name=ph_name, ph_lines=ph_lines)
-        all_ph_lines += child_lines
-    return all_ph_lines
+        all_ph_lines += template_obj.substitute(ph_name=ph_name, ph_lines=ph_lines)
+    return all_ph_lines + "\n"
 
 def make_schedule_block(child_dicts, ph_dict, counter=None, sched_name="top"):
     '''
@@ -73,13 +86,13 @@ def make_schedule_block(child_dicts, ph_dict, counter=None, sched_name="top"):
     '''
     if counter is None:
         counter = count(1)
-    top_sched_template_string = """schedule $sched_name
+    sched_template_string = """schedule $sched_name
     $sched_lines
     end
     """
     current_sched_lines = ""
     child_lines = ""
-    top_sched_temp_obj = string.Template(top_sched_template_string)
+    sched_temp_obj = string.Template(sched_template_string)
 
     for entry in child_dicts:
         if entry['type'] == 'pulse_entry':
@@ -112,8 +125,43 @@ def make_schedule_block(child_dicts, ph_dict, counter=None, sched_name="top"):
 
             child_lines += child_block
 
-    current_sched_lines = top_sched_temp_obj.substitute(
+    current_sched_lines = sched_temp_obj.substitute(
         sched_name=sched_name,
         sched_lines=current_sched_lines
     )
-    return current_sched_lines + child_lines
+    all_sched_lines = current_sched_lines + child_lines
+    return all_sched_lines + "\n"
+
+
+def make_input_file(flux_lines,
+                    all_ph_lines,
+                    all_sched_lines,
+                    trunc_tolerance,
+                    input_filename,
+                    nuclib="nuclib.std"):
+    """
+    Collect volume, loading, and mixture blocks from ALARA tool all_nuc_inp.py.
+    Assemble with data and output block-related lines that are expected to change infrequently.
+    Finally combine with flux, schedule, and ph blocks, along with truncation tolerance.
+    Write all lines to a file.
+    :param: trunc_tolerance (float)
+    :param: input_filename (str)
+    :param: nuclib (str, path to ALARA nuclide library)
+    """
+    vol_lines, load_lines, mix_lines = all_nuc_inp.make_volume_block(open(
+        nuclib, 'r').readlines(),
+                                                                     volume=1)
+    data_output_lines = """material_lib matlib.sample
+    element_lib elelib.std
+    data_library alaralib fendl2bin
+
+    output zone
+        specific_activity
+        number_density
+    end
+    """
+    trunc_tol_obj = string.Template("truncation $trunc_tol")
+    trunc_tol_obj.substitute(trunc_tol=trunc_tolerance)
+    assembled_lines = "geometry rectangular\n" + vol_lines + load_lines + mix_lines + data_output_lines + "\n" + flux_lines + all_sched_lines + all_ph_lines + f"truncation {trunc_tolerance}"
+    with open(input_filename, 'w') as new_inp:
+        new_inp.write(assembled_lines)

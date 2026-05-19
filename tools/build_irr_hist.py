@@ -1,4 +1,3 @@
-import string
 from itertools import count
 from all_nuc_inp import make_volume_block
 """
@@ -67,8 +66,6 @@ def make_flux_block(flux_dict):
     '''
     Create the flux block of an ALARA input file.
     '''
-    flux_temp_obj = string.Template("""flux $flux_name $fluxin_file 0 default
-    """)
     flux_lines = ""
     for flux_path, name in flux_dict.items():
         flux_lines += f"flux {name} {flux_path} 0 default\n"
@@ -79,10 +76,6 @@ def make_pulse_history_block(ph_dict):
     '''
     Creates the lines comprising the pulse history block of an ALARA input file.
     '''
-    template_obj = string.Template("""pulsehistory  $ph_name
-    $ph_lines
-    end
-    """)
 
     all_ph_lines = ""
     for ph_list, ph_name in ph_dict.items():
@@ -101,10 +94,6 @@ def make_schedule_block(child_dicts, ph_dict, flux_dict, sched_counter=None, sch
         sched_counter = count(1)
     current_sched_lines = ""
     child_lines = ""
-    sched_temp_obj = string.Template("""schedule $sched_name
-    $sched_lines
-    end
-    """)
 
     for child_dict in child_dicts:
         if child_dict['type'] == 'pulse_entry':
@@ -136,7 +125,7 @@ def make_schedule_block(child_dicts, ph_dict, flux_dict, sched_counter=None, sch
 
             child_lines += child_block
 
-    current_sched_lines = f"schedule {sched_name}\n{sched_lines}\nend\n"
+    current_sched_lines = f"schedule {sched_name}\n{current_sched_lines}\nend\n"
     all_sched_lines = current_sched_lines + child_lines
     return all_sched_lines
 

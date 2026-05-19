@@ -97,14 +97,14 @@ def test_map_adf_flux_tirr(test_adf, norm_flux_arr, t_irr_arr_mod, exp_mod_adf):
                           ])
     
 def test_write_to_sqlite(mod_adf):
-    cursor = ats.write_to_sqlite(mod_adf, db_name = ":memory:")
+    cursor = ats.write_to_sqlite(mod_adf, sqlite3.connect(":memory:"))
     cursor.execute("SELECT * FROM number_densities")
     result = cursor.fetchall()
     assert len(result) == len(mod_adf["half_life"])
-    assert len(result[0]) == 6
+    assert len(result[0]) == 5
 
 @pytest.mark.parametrize( "test_cursor",
-                          [sqlite3.connect(":memory").cursor()])    
+                          [sqlite3.connect(":memory:").cursor()])    
 
 def test_close_sqlite_conn(test_cursor):
     # This function has a built-in test in the form of catching operational errors

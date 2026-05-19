@@ -75,18 +75,17 @@ def map_adf_flux_tirr(adf, norm_flux_arr, t_irr_arr_mod):
     adf['t_irr'] = t_irr_arr_mod
     return adf
 
-
-def write_to_sqlite(adf, db_name="activation_results.db"):
+def write_to_sqlite(adf, sqlite_conn):
     '''
     Initialize a connection to a SQLite database, and write the adf
     to it. Catches any errors produced during this process.
     '''
     try:
-        sqlite_conn = sqlite3.connect(db_name)
         adf.to_sql('number_densities',
                    sqlite_conn,
                    if_exists='append',
-                   method="multi")
+                   method="multi",
+                   index=False)
         sqlite_conn.commit()
     except sqlite3.OperationalError as error:
         print(error)

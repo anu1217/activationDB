@@ -1,4 +1,4 @@
-import build_irr_hist
+import build_inp_blocks
 import pytest
 from all_nuc_inp import make_volume_block
 
@@ -51,7 +51,7 @@ def normalize_lines(lines):
 ])
 
 def test_make_ph_dict(child_dicts, ph_counter, exp_ph_dict):
-    obs_ph_dict = build_irr_hist.make_ph_dict(child_dicts, ph_counter)
+    obs_ph_dict = build_inp_blocks.make_ph_dict(child_dicts, ph_counter)
     assert obs_ph_dict == exp_ph_dict
 
 @pytest.mark.parametrize("child_dicts, flux_counter, exp_flux_dict", [
@@ -96,7 +96,7 @@ def test_make_ph_dict(child_dicts, ph_counter, exp_ph_dict):
     ])
 
 def test_make_flux_dict(child_dicts, flux_counter, exp_flux_dict):
-    obs_flux_dict = build_irr_hist.make_flux_dict(child_dicts, flux_counter)
+    obs_flux_dict = build_inp_blocks.make_flux_dict(child_dicts, flux_counter)
     assert obs_flux_dict == exp_flux_dict
 
 @pytest.mark.parametrize("flux_dict, exp_flux_block", [
@@ -112,7 +112,7 @@ def test_make_flux_dict(child_dicts, flux_counter, exp_flux_dict):
     ])
 
 def test_make_flux_block(flux_dict, exp_flux_block):
-    obs_flux_block = build_irr_hist.make_flux_block(flux_dict)
+    obs_flux_block = build_inp_blocks.make_flux_block(flux_dict)
     assert normalize_lines(obs_flux_block) == normalize_lines(exp_flux_block)
 
 @pytest.mark.parametrize("ph_dict, exp_ph_block", [
@@ -138,7 +138,7 @@ def test_make_flux_block(flux_dict, exp_flux_block):
     ])
 
 def test_make_pulse_history_block(ph_dict, exp_ph_block):
-    obs_ph_block = build_irr_hist.make_pulse_history_block(ph_dict)
+    obs_ph_block = build_inp_blocks.make_pulse_history_block(ph_dict)
     assert normalize_lines(obs_ph_block) == normalize_lines(exp_ph_block)
 
 @pytest.mark.parametrize("child_dicts, ph_dict, flux_dict, sched_counter, sched_name, exp_sched_block", [
@@ -199,7 +199,7 @@ def test_make_pulse_history_block(ph_dict, exp_ph_block):
 
 def test_make_schedule_block(child_dicts, ph_dict, flux_dict, sched_counter,
                              sched_name, exp_sched_block):
-    obs_sched_block = build_irr_hist.make_schedule_block(
+    obs_sched_block = build_inp_blocks.make_schedule_block(
         child_dicts, ph_dict, flux_dict, sched_counter, sched_name)
     assert normalize_lines(obs_sched_block) == normalize_lines(exp_sched_block)
 
@@ -298,7 +298,7 @@ def test_make_schedule_block(child_dicts, ph_dict, flux_dict, sched_counter,
 
 def test_make_input_lines(flux_lines, all_ph_lines, all_sched_lines,
                           trunc_tolerance, nuclib_lines, exp_assembled_lines):
-    obs_assembled_lines = build_irr_hist.make_input_lines(
+    obs_assembled_lines = build_inp_blocks.make_input_lines(
         flux_lines, all_ph_lines, all_sched_lines, trunc_tolerance,
         nuclib_lines)
     assert normalize_lines(obs_assembled_lines) == normalize_lines(

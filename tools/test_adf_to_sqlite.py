@@ -1,7 +1,6 @@
 import numpy as np
-import pandas as pd
 import alara_output_processing as aop
-import script_template as script_temp
+import adf_to_sqlite as ats
 import sqlite3
 import pytest
 
@@ -10,7 +9,7 @@ import pytest
                            ])
 
 def test_parse_flux_str(all_flux_entries, num_groups, exp_flux_arr):
-    obs_flux_arr = script_temp.parse_flux_str(all_flux_entries, num_groups)
+    obs_flux_arr = ats.parse_flux_str(all_flux_entries, num_groups)
     assert obs_flux_arr.all() == exp_flux_arr.all()
 
 @pytest.mark.parametrize( "flux_arr, exp_norm_flux_arr",
@@ -22,7 +21,7 @@ def test_parse_flux_str(all_flux_entries, num_groups, exp_flux_arr):
                           ])
 
 def test_normalize_flux(flux_arr, exp_norm_flux_arr):
-    obs_norm_flux_arr = script_temp.normalize_flux(flux_arr)
+    obs_norm_flux_arr = ats.normalize_flux(flux_arr)
     assert obs_norm_flux_arr.all() == exp_norm_flux_arr.all()
 
 @pytest.mark.parametrize( "adf",
@@ -45,7 +44,7 @@ def test_modify_adf_for_db(adf):
     '''
     Ensure that the expected columns exist in the adf.
     '''
-    adf = script_temp.modify_adf_for_db(adf)
+    adf = ats.modify_adf_for_db(adf)
     assert not any(col in adf for col in [
         "value",
         "time",
@@ -83,8 +82,8 @@ def test_modify_adf_for_db(adf):
                           ])
 
 def test_map_adf_flux_tirr(test_adf, norm_flux_arr, t_irr_arr_mod, exp_mod_adf):
-    obs_mod_adf = script_temp.map_adf_flux_tirr(test_adf, norm_flux_arr, t_irr_arr_mod)
-    assert pd.DataFrame(obs_mod_adf["flux_spec_shape"]).equals(pd.DataFrame(exp_mod_adf["flux_spec_shape"])) == True
+    obs_mod_adf = ats.map_adf_flux_tirr(test_adf, norm_flux_arr, t_irr_arr_mod)
+    assert obs_mod_adf["flux_spec_shape"].equals(exp_mod_adf["flux_spec_shape"]) == True
     assert all(obs_mod_adf["t_irr"]) == all(exp_mod_adf["t_irr"])
 
 @pytest.mark.parametrize( "mod_adf",
@@ -98,7 +97,7 @@ def test_map_adf_flux_tirr(test_adf, norm_flux_arr, t_irr_arr_mod, exp_mod_adf):
                           ])
     
 def test_write_to_sqlite(mod_adf):
-    cursor = script_temp.write_to_sqlite(mod_adf, db_name = ":memory:")
+    cursor = ats.write_to_sqlite(mod_adf, db_name = ":memory:")
     cursor.execute("SELECT * FROM number_densities")
     result = cursor.fetchall()
     assert len(result) == len(mod_adf["half_life"])
@@ -109,4 +108,4 @@ def test_write_to_sqlite(mod_adf):
 
 def test_close_sqlite_conn(test_cursor):
     # This function has a built-in test in the form of catching operational errors
-    script_temp.close_sqlite_conn(test_cursor)
+    ats.close_sqlite_conn(test_cursor)

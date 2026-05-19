@@ -169,10 +169,8 @@ def test_make_pulse_history_block(ph_dict, exp_ph_block):
             }
         ],
         'pulse_history': [(7, 9.5, 'd'), (3, 2.3, 'y')],
-        'delay_dur':
-        6.3,
-        'delay_dur_unit':
-        'm'
+        'delay_dur': 6.3,
+        'delay_dur_unit': 'm'
     }, {
         'type': 'pulse_entry',
         'pulse_length': 7.4,

@@ -1,7 +1,28 @@
+import numpy as np
 import alara_output_processing as aop
 import script_template as script_temp
 import sqlite3
 import pytest
+
+@pytest.mark.parametrize( "all_flux_entries, num_groups, exp_flux_arr",
+                          [(np.array([2,4,6,8,10,2,4,6,8,10]), 5, np.array([[2,4,6,8,10], [2,4,6,8,10]]))
+                           ])
+
+def test_parse_flux_str(all_flux_entries, num_groups, exp_flux_arr):
+    obs_flux_arr = script_temp.parse_flux_str(all_flux_entries, num_groups)
+    assert obs_flux_arr.all() == exp_flux_arr.all()
+
+@pytest.mark.parametrize( "flux_arr, exp_norm_flux_arr",
+                          [
+                            (np.array([[2,4,6,8,10], [2,4,6,8,10]]), np.array([[num / 30 for num in [2,4,6,8,10]], 
+                                                                               [num / 30 for num in [2,4,6,8,10]]
+                                                                               ])
+                                                                               )
+                          ])
+
+def test_normalize_flux(flux_arr, exp_norm_flux_arr):
+    obs_norm_flux_arr = script_temp.normalize_flux(flux_arr)
+    assert obs_norm_flux_arr.all() == exp_norm_flux_arr.all()
 
 @pytest.mark.parametrize( "adf",
                           [

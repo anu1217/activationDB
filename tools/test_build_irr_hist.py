@@ -10,8 +10,7 @@ def normalize_lines(lines):
 
 @pytest.mark.parametrize("child_dicts, ph_counter, exp_ph_dict", [
     ([{
-        'type':
-        'schedule',
+        'type': 'schedule',
         'children': [
             {
                 'type': 'pulse_entry',
@@ -32,10 +31,8 @@ def normalize_lines(lines):
             }
         ],
         'pulse_history': [(7, 9.5, 'd'), (3, 2.3, 'y')],
-        'delay_dur':
-        6.3,
-        'delay_dur_unit':
-        'm'
+        'delay_dur': 6.3,
+        'delay_dur_unit': 'm'
     }, {
         'type': 'pulse_entry',
         'pulse_length': 7.4,
@@ -44,7 +41,9 @@ def normalize_lines(lines):
         'pulse_history': [(3, 7.9, 'm'), (2, 5.5, 's'), (9, 1.2, 'c')],
         'delay_dur': 5.33,
         'delay_dur_unit': 'c'
-    }], None, {
+    }], 
+    None, 
+    {
         ((7, 9.5, 'd'), (3, 2.3, 'y')) : 'pulse_history_1',
         ((3, 7.9, 'm'), (2, 5.5, 's'), (9, 1.2, 'c')): 'pulse_history_4',
         ((1, 8.0, 'm'), (2, 3, 's'), (9, 1.1, 'c')) : 'pulse_history_3'
@@ -57,8 +56,7 @@ def test_make_ph_dict(child_dicts, ph_counter, exp_ph_dict):
 
 @pytest.mark.parametrize("child_dicts, flux_counter, exp_flux_dict", [
     ([{
-        'type':
-        'schedule',
+        'type': 'schedule',
         'children': [
             {
                 'type': 'pulse_entry',
@@ -79,10 +77,8 @@ def test_make_ph_dict(child_dicts, ph_counter, exp_ph_dict):
             }
         ],
         'pulse_history': [(7, 9.5, 'd'), (3, 2.3, 'y')],
-        'delay_dur':
-        6.3,
-        'delay_dur_unit':
-        'm'
+        'delay_dur': 6.3,
+        'delay_dur_unit': 'm'
     }, {
         'type': 'pulse_entry',
         'pulse_length': 7.4,
@@ -147,8 +143,7 @@ def test_make_pulse_history_block(ph_dict, exp_ph_block):
 
 @pytest.mark.parametrize("child_dicts, ph_dict, flux_dict, sched_counter, sched_name, exp_sched_block", [
     ([{
-        'type':
-        'schedule',
+        'type': 'schedule',
         'children': [
             {
                 'type': 'pulse_entry',

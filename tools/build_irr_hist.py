@@ -71,8 +71,7 @@ def make_flux_block(flux_dict):
     """)
     flux_lines = ""
     for flux_path, name in flux_dict.items():
-        flux_lines += flux_temp_obj.substitute(flux_name=name,
-                                               fluxin_file=flux_path)
+        flux_lines += f"flux {name} {flux_path} 0 default\n"
     return flux_lines + "\n"
 
 
@@ -89,10 +88,8 @@ def make_pulse_history_block(ph_dict):
     for ph_list, ph_name in ph_dict.items():
         ph_lines = ""
         for level in ph_list:
-            ph_lines += (f'{level[0]}\t' + f'{level[1]}\t' + f'{level[2]}' +
-                         '\n')
-        all_ph_lines += template_obj.substitute(ph_name=ph_name,
-                                                ph_lines=ph_lines)
+            ph_lines += '\t'.join([str(e) for e in level]) + '\n'
+        all_ph_lines += f"pulsehistory ${ph_name}\n${ph_lines}\nend\n"
     return all_ph_lines + "\n"
 
 
@@ -139,10 +136,7 @@ def make_schedule_block(child_dicts, ph_dict, flux_dict, sched_counter=None, sch
 
             child_lines += child_block
 
-    current_sched_lines = sched_temp_obj.substitute(
-        sched_name=sched_name,
-        sched_lines=current_sched_lines
-    )
+    current_sched_lines = f"schedule {sched_name}\n{sched_lines}\nend\n"
     all_sched_lines = current_sched_lines + child_lines
     return all_sched_lines
 

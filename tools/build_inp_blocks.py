@@ -82,7 +82,7 @@ def make_pulse_history_block(ph_dict):
         ph_lines = ""
         for level in ph_list:
             ph_lines += '\t'.join([str(e) for e in level]) + '\n'
-        all_ph_lines += f"pulsehistory ${ph_name}\n${ph_lines}\nend\n"
+        all_ph_lines += f"pulsehistory {ph_name}\n{ph_lines}\nend\n"
     return all_ph_lines + "\n"
 
 

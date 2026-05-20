@@ -1,5 +1,4 @@
 from itertools import count
-from all_nuc_inp import make_volume_block
 """
 The following data structure (child_dicts) is
 an iterable of dictionaries, where each dictionary contains the details
@@ -135,11 +134,24 @@ def read_nuclib(nuclib="nuclib.std"):
         nuclib, 'r').readlines()
     return nuclib_lines
 
+def make_volume_block(nuclib_lines, volume):
+    vol_lines = "volume\n"
+    load_lines = "mat_loading\n"
+    mix_lines = ""
+    for line in nuclib_lines:
+        line = line.strip().split()
+        nuc = line[0]
+        if ':' in nuc:
+            vol_lines += f'\t {volume}\t{nuc}\n'
+            load_lines += f'\t{nuc}\t mix_{nuc}\n'
+            mix_lines += f'mixture mix_{nuc}\n\t element {nuc} 1 1.0 \nend \n'
+    return vol_lines + "end\n", load_lines + "end\n", mix_lines
 
-def make_input_lines(flux_lines, all_ph_lines, all_sched_lines,
+
+def make_input_lines(vol_lines, load_lines, mix_lines, flux_lines, all_ph_lines, all_sched_lines,
                      trunc_tolerance, nuclib_lines):
     """
-    Collect volume, loading, and mixture blocks from ALARA tool all_nuc_inp.py.
+    Collect volume, loading, and mixture blocks from make_volume_block().
     Assemble with data and output block-related lines that are expected to change infrequently.
     Finally combine with flux, schedule, and ph blocks, along with truncation tolerance.
     Write all lines to a file.
@@ -147,8 +159,6 @@ def make_input_lines(flux_lines, all_ph_lines, all_sched_lines,
     :param: input_filename (str)
     :param: nuclib (str, path to ALARA nuclide library)
     """
-    vol_lines, load_lines, mix_lines = make_volume_block(nuclib_lines,
-                                                         volume=1)
     data_output_lines = """material_lib matlib.sample
     element_lib elelib.std
     data_library alaralib fendl2bin

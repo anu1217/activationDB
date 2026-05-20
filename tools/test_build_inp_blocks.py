@@ -1,6 +1,5 @@
 import build_inp_blocks
 import pytest
-from all_nuc_inp import make_volume_block
 
 def normalize_lines(lines):
     '''

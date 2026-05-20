@@ -297,7 +297,7 @@ def test_make_schedule_block(child_dicts, ph_dict, flux_dict, sched_counter,
 
 def test_make_input_lines(flux_lines, all_ph_lines, all_sched_lines,
                           trunc_tolerance, nuclib_lines, exp_assembled_lines):
-    vol_lines, load_lines, mix_lines = make_volume_block(nuclib_lines, volume=1)
+    vol_lines, load_lines, mix_lines = build_inp_blocks.make_volume_block(nuclib_lines, volume=1)
     obs_assembled_lines = build_inp_blocks.make_input_lines(
         vol_lines, load_lines, mix_lines, flux_lines, all_ph_lines, all_sched_lines, trunc_tolerance,
         nuclib_lines)

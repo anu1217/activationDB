@@ -26,7 +26,7 @@ import numpy as np
       'pulse_length_unit': 'y',
       'flux_filepath' : '../iter_flux',
       'flux_norm' : 0.3,
-      'pulse_history': [5, 10, 'm'],
+      'pulse_history': [(5, 10, 'm')],
       'delay_dur' : 0.0,
       'delay_dur_unit' : 's'},
       
@@ -35,7 +35,7 @@ import numpy as np
       'pulse_length_unit': 'y',
       'flux_filepath' : '../frascati_flux',
       'flux_norm' : 0.3,
-      'pulse_history': [5, 10, 'm'],
+      'pulse_history': [(5, 10, 'm')],
       'delay_dur' : 0.0,
       'delay_dur_unit' : 's'}
             ]

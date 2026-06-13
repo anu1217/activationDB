@@ -1,5 +1,6 @@
 import numpy as np
 import sqlite3
+import json
 
 
 def open_flux_file(flux_file):
@@ -37,6 +38,23 @@ def normalize_flux(flux_array):
     return norm_flux_arr
 
 
+def find_flux_spec_shape_id(sqlite_conn, flux_spec_shape):
+    '''
+    Assuming that a table called flux_spectra exists in the database, find
+    the id of the desired flux spectrum from the table. Assumes that
+    the data in the table is stored in json/text format.
+    :param: sqlite_conn (sqlite3 connection object)
+    :param: flux_spec_shape (iterable, normalized flux spectrum with the number of entries 
+                            being the number of groups in the structure)
+    '''
+    result = sqlite_conn.execute(
+    "SELECT flux_spec_shape_id FROM flux_spectra WHERE flux_spec_shape = ?",
+    (json.dumps(flux_spec_shape.tolist()),)
+    )
+    flux_spec_shape_id = result.fetchone()[0]
+    return flux_spec_shape_id
+
+
 def modify_adf_for_db(adf):
     '''
     Filters the adf for the pre-shutdown state and the number density.
@@ -58,7 +76,7 @@ def modify_adf_for_db(adf):
     return adf
 
 
-def map_adf_flux_tirr(adf, norm_flux_arr, t_irr_arr_mod):
+def map_adf_flux_tirr(adf, norm_flux_arr, sqlite_conn, t_irr_arr_mod):
     '''
     Finds the unique block names in the adf and maps the correct flux spectrum
     to the block. Assigns a column to store irradiation time.
@@ -68,10 +86,9 @@ def map_adf_flux_tirr(adf, norm_flux_arr, t_irr_arr_mod):
     '''
 
     block_names = adf['block_name'].unique()
-    flux_map = dict(zip(block_names, norm_flux_arr))
-
-    # Normalized flux spectrum shape:
-    adf['flux_spec_shape'] = adf['block_name'].map(flux_map)
+    for unique_bn, flux_spec_shape in zip(block_names, norm_flux_arr):
+        flux_spec_shape_id = find_flux_spec_shape_id(sqlite_conn, flux_spec_shape)
+        adf.loc[adf["block_name"] == unique_bn, "flux_spec_shape_id"] = flux_spec_shape_id
     adf['t_irr'] = t_irr_arr_mod
     return adf
 

@@ -1,7 +1,6 @@
 import pytest
 import make_flux_table as mft
 import sqlite3
-import uuid
 import json
 import numpy as np
 
@@ -20,7 +19,7 @@ import numpy as np
             sqlite3.connect(":memory:").cursor().execute(
                 """
                 CREATE TABLE flux_spectra (
-                flux_spec_shape_id INT PRIMARY KEY,
+                flux_spec_shape_id INTEGER PRIMARY KEY,
                 flux_file TEXT,
                 flux_spectrum TEXT,
                 UNIQUE(flux_file, flux_spectrum)
@@ -28,9 +27,9 @@ import numpy as np
                 """
             ),
             {
-                'flux_spec_shape_id': [str(uuid.uuid4()), 5],
+                'flux_spec_shape_id': [3, 4],
                 'flux_file' : ['../fnsf', '../iter_dt'],
-                'flux_spectrum' : [json.dumps(np.array([3, 9, 12]).tolist()), json.dumps([5, 7, 11, 13, 25])]
+                'flux_spectrum' : ['[3,9,12]', json.dumps([5, 7, 11, 13, 25])]
             },
         ),
     ],

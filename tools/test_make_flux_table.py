@@ -10,7 +10,6 @@ import numpy as np
         (
             sqlite3.connect("activation_results.db").cursor(),
             {
-                'flux_spec_shape_id' : [1,2],
                 'flux_file' : ['../fnsf', '../iter_dt'],
                 'flux_spectrum' : [json.dumps(np.array([3, 9, 12]).tolist()), json.dumps([5, 7, 11, 13, 25])]
             },
@@ -27,7 +26,6 @@ import numpy as np
                 """
             ),
             {
-                'flux_spec_shape_id': [3, 4],
                 'flux_file' : ['../fnsf', '../iter_dt'],
                 'flux_spectrum' : ['[3,9,12]', json.dumps([5, 7, 11, 13, 25])]
             },
@@ -42,6 +40,8 @@ def test_populate_flux_table(cur, flux_data_dict):
     cur.execute("BEGIN") # stops subsequent statements (e.g. CREATE TABLE) from being committed automatically
     mft.create_flux_table(cur)
     mft.populate_flux_table(cur, flux_data_dict)
+    id_rows = cur.execute("SELECT flux_spec_shape_id from flux_spectra").fetchall()
     rows = cur.execute("SELECT * from flux_spectra").fetchall()
-    assert len(rows) == len(flux_data_dict["flux_spec_shape_id"]) == len(flux_data_dict["flux_file"]) == len(flux_data_dict["flux_spectrum"])
+    assert len(rows) == len(flux_data_dict["flux_file"]) == len(flux_data_dict["flux_spectrum"])
+    assert id_rows[1][0] == 2
     cur.connection.close()

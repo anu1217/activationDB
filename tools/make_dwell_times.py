@@ -36,10 +36,9 @@ def calc_time_params_complex_ph(fluences, rel_dcs_lists, nums_pulses, calc_dwell
     pulse_lengths = np.outer(fluences, 1 / np.sum(rel_dcs_lists, axis=1)) #shape len(fluences), len(rel_dcs_lists)
     for fluence_idx, _ in enumerate(fluences):
         for rel_dcs_list_idx, rel_dc_list in enumerate(rel_dcs_lists):
-            lvl_dwell_times = accumulate_ph_fluence_off_time(rel_dc_list, pulse_lengths[fluence_idx][rel_dcs_list_idx], 
+            all_dwell_times[rel_dcs_list_idx] = accumulate_ph_fluence_off_time(rel_dc_list, pulse_lengths[fluence_idx][rel_dcs_list_idx], 
                                                              nums_pulses[rel_dcs_list_idx], 
                                                              calc_dwell_time)
-            all_dwell_times[rel_dcs_list_idx] = lvl_dwell_times
     return pulse_lengths, all_dwell_times
 
 

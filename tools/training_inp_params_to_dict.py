@@ -45,7 +45,7 @@ def write_training_params_dict(min_on_time, rel_on_time_factors,
                                         'pulse_length_unit': time_unit,
                                         'flux_filepath': flux_file,
                                         'flux_norm': flux_norm_factor,
-                                        'pulse_history': [1, 0, 's'],
+                                        'pulse_history': [(1, 0, 's')],
                                         'delay_dur': 0.0,
                                         'delay_dur_unit': 's'}
     return training_child_dicts

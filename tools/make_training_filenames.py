@@ -20,9 +20,8 @@ def make_filename_strings(training_inp_info, sqlite_conn, min_on_times, time_uni
     filenames = np.empty((len(min_on_times),) + training_inp_info.shape, dtype=object)
     for (min_on_time_idx, rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx), _ in np.ndenumerate(filenames):
         entry = training_inp_info[rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx]
-        if entry == None:
+        if entry is None:
             filenames[min_on_time_idx, rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx] = None
-            continue
         else:
             rel_on_time_factor, flux_norm_factor, flux_file = entry
             flux_id = qsd.find_flux_spec_shape_id(sqlite_conn, "flux_file", flux_file)

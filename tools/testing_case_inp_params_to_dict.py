@@ -64,7 +64,7 @@ def write_testing_params_dict(num_pulses_list, dwell_times, dwell_time_unit, min
             rel_on_time_factor, flux_norm_factor, flux_file = testing_inp_info[rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx]
             testing_child_dicts[num_pulse_idx, dwell_time_idx, min_on_time_idx, rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx] = {
                                         'type': 'pulse_entry',
-                                        'pulse_length': min_on_times[min_on_time_idx] * rel_on_time_factor,
+                                        'pulse_length': min_on_times[min_on_time_idx] * rel_on_time_factor / num_pulses_list[num_pulse_idx],
                                         'pulse_length_unit': pulse_length_unit,
                                         'flux_filepath': flux_file,
                                         'flux_norm': flux_norm_factor,

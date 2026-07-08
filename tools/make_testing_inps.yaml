@@ -1,7 +1,8 @@
 min_on_times :
+  - 1
+  - 2
+  - 5
   - 10
-  - 20
-  - 30
 
 min_on_time_unit : y 
 

@@ -1,12 +1,12 @@
 import numpy as np
 import query_sqlite_db as qsd
 
-def make_single_level_ph_filename_strings(max_fluence_factors, sqlite_conn, nums_pulses, dwell_times, min_on_times, on_time_unit, dwell_time_unit):
+def make_single_level_ph_filename_strings(testing_inp_info, sqlite_conn, nums_pulses, dwell_times, min_on_times, on_time_unit, dwell_time_unit):
     """
     Creates filenames for pulse histories with a single level.
-    :param: max_fluence_factors (3D numpy array where each dimension corresponds to
+    :param: testing_inp_info (3D numpy array where each dimension corresponds to
     relative fluence factors (float), flux normalization factors (float), and paths to flux files (str), respectively)
-    Each entry of max_fluence_factors is a 3-tuple of (relative fluence factor, flux normalization factor, flux file)
+    Each entry of testing_inp_info is a 3-tuple of (relative fluence factor, flux normalization factor, flux file)
     :param: sqlite_conn (SQLite connection object to database containing flux table)
     :param: nums_pulses (iterable of number of pulses in each single-level pulse history)
     :param: dwell_times (iterable of dwell times between subsequent pulses, where each dwell time is for each single-level pulse history)
@@ -14,9 +14,9 @@ def make_single_level_ph_filename_strings(max_fluence_factors, sqlite_conn, nums
     :param: on_time_unit (unit (str) of min_on_times)
     :param: dwell_time_unit (unit (str) of dwell_times)
     """
-    filenames = np.empty((len(min_on_times), len(nums_pulses), len(dwell_times)) + max_fluence_factors.shape, dtype=object)
+    filenames = np.empty((len(min_on_times), len(nums_pulses), len(dwell_times)) + testing_inp_info.shape, dtype=object)
     for (num_pulse_idx, dwell_time_idx, min_on_time_idx, rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx), _ in np.ndenumerate(filenames):
-        entry = max_fluence_factors[rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx]
+        entry = testing_inp_info[rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx]
         if entry is None:
             filenames[num_pulse_idx, dwell_time_idx, min_on_time_idx, rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx] = None
         else:

@@ -51,7 +51,6 @@ num_pulses_list :
   - 10
   - 20
   - 50
-  - 100
 dwell_times :
   - 0.2
   - 0.5
@@ -60,4 +59,4 @@ dwell_times :
   - 10
   - 20
   - 30
-dwell_time_unit : 'y'  
+dwell_time_unit : 'm'  

@@ -1,9 +1,114 @@
 import numpy as np
 from itertools import product
 
+def make_flux_tirr_combos(rel_on_time_factors, flux_norm_factors, flux_files):
+    """
+    This function calculates combinations of irradiation time and flux normalization factors
+    that do not exceed a prescribed value. The process is repeated for each flux spectrum.
+    The data is stored in a numpy array of shape len(rel_on_time_factors) x len(flux_norm_factors) x len(flux_files).
 
-def write_testing_params_dict(num_pulses, dwell_time, dwell_time_unit, min_on_time, rel_on_time_factors,
-                               flux_norm_factors, flux_files, pulse_length_unit):
+    The total amount of fluence is defined by the product of the minimum on-time
+    and the maximum flux magnitude. If a combination of on-time and flux scaling factors results in
+    the total fluence being exceeded, the corresponding entry in the numpy array of input information is
+    set to None.
+
+    :param: rel_on_time_factors (iterable of factors (float) that scale the minimum on-time)
+    :param: flux_norm_factors (iterable of factors (float) that scale the maximum flux magnitude)
+    :param: flux_files (iterable of paths (str) to flux files)
+    """
+    testing_inp_info = np.ndarray((len(rel_on_time_factors), len(flux_norm_factors), len(flux_files)), dtype=object)
+    for (rel_on_time_factor_idx, rel_on_time_factor), (flux_norm_factor_idx, flux_norm_factor), (flux_file_idx, flux_file) in product(
+                enumerate(rel_on_time_factors),
+                enumerate(flux_norm_factors),
+                enumerate(flux_files)):
+        if rel_on_time_factor * flux_norm_factor > 1:
+            testing_inp_info[rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx] = None
+        else:
+            testing_inp_info[rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx] = (rel_on_time_factor, flux_norm_factor, flux_file)
+    return testing_inp_info
+
+
+# from training def write_testing_params_dict(testing_inp_info, min_on_times, time_unit):
+#     """
+#     This function takes a an array of input parameters and converts them into a dictionary of the form below.
+#     This dictionary can be used to build a single-line schedule with a single-line pulse history. A separate
+#     dictionary for each viable combination of input parameters is constructed, and each dictionary is stored
+#     in a numpy array of shape len(rel_on_time_factors) x len(flux_norm_factors) x len(flux_files).
+
+#     :param: min_on_times (iterable of minimum total amount of time (float) during which the flux is nonzero)
+#     :param: time_unit (unit (str) of pulse length)
+#     """
+#     testing_child_dicts = np.empty((len(min_on_times),) + testing_inp_info.shape, dtype=object)
+#     for (min_on_time_idx, rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx), _ in np.ndenumerate(testing_child_dicts):
+#         if testing_inp_info[rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx] == None:
+#             continue
+#         else:
+#             rel_on_time_factor, flux_norm_factor, flux_file = testing_inp_info[rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx]
+#             testing_child_dicts[min_on_time_idx, rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx] = {
+#                         'type': 'pulse_entry',
+#                         'pulse_length': min_on_times[min_on_time_idx] * rel_on_time_factor,
+#                         'pulse_length_unit': time_unit,
+#                         'flux_filepath': flux_file,
+#                         'flux_norm': flux_norm_factor,
+#                         'pulse_history': [(1, 0, 's')],
+#                         'delay_dur': 0.0,
+#                         'delay_dur_unit': 's'
+#                         }
+#     return testing_child_dicts
+
+
+# old def write_testing_params_dict(num_pulses, dwell_time, dwell_time_unit, min_on_time, rel_on_time_factors,
+#                                flux_norm_factors, flux_files, pulse_length_unit):
+#     """
+#     This function takes a series of input parameters and converts them into a dictionary with a single
+#     pulse entry with a single-level pulse history. A separate dictionary for each viable combination of 
+#     input parameters is constructed, and each dictionary is stored in a numpy array of
+#     shape len(rel_on_time_factors) x len(flux_norm_factors) x len(flux_files).
+
+#     The total amount of fluence is defined by the product of the minimum on-time
+#     and the maximum flux magnitude. If a combination of on-time and flux scaling factors results in
+#     the total fluence being exceeded, the corresponding entry in the numpy array of dictionaries is
+#     set to None.
+#     [
+#     {'type': 'pulse_entry',
+#         'pulse_length': (float),
+#         'pulse_length_unit': (str),
+#         'flux_filepath' : (str),
+#         'flux_norm' : (float),
+#         'pulse_history': (iterable of (int, float, str)),
+#         'delay_dur' : (float),
+#         'delay_dur_unit': (str)
+#     }
+#     ]
+#     :param: nums_pulses (number of pulses (int) in the single-level pulse history)
+#     :param: dwell_time (off-time (float) between subsequent pulses)
+#     :param: dwell_time_unit (unit (str) of the dwell time)
+#     :param: min_on_time (minimum total amount of time (float) during which the flux is nonzero)
+#     :param: rel_on_time_factors (iterable of factors (float) that scale the minimum on-time)
+#     :param: flux_norm_factors (iterable of factors (float) that scale the maximum flux magnitude)
+#     :param: flux_files (iterable of paths (str) to flux files)
+#     :param: pulse_length_unit (unit (str) of the pulse length)
+#     """
+#     testing_child_dicts = np.ndarray((len(rel_on_time_factors), len(flux_norm_factors), len(flux_files)), dtype=object)
+#     for (rel_on_time_factor_idx, rel_on_time_factor), (flux_norm_factor_idx, flux_norm_factor), (flux_file_idx, flux_file) in product(
+#                 enumerate(rel_on_time_factors),
+#                 enumerate(flux_norm_factors),
+#                 enumerate(flux_files)):
+#         if rel_on_time_factor * flux_norm_factor > 1:
+#             testing_child_dicts[rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx] = None
+#         else:
+#             testing_child_dicts[rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx] = {
+#                                         'type': 'pulse_entry',
+#                                         'pulse_length': min_on_time * rel_on_time_factor,
+#                                         'pulse_length_unit': pulse_length_unit,
+#                                         'flux_filepath': flux_file,
+#                                         'flux_norm': flux_norm_factor,
+#                                         'pulse_history': [(num_pulses, dwell_time, dwell_time_unit)],
+#                                         'delay_dur': 0.0,
+#                                         'delay_dur_unit': 's'}
+#     return testing_child_dicts
+
+def write_testing_params_dict(num_pulses_list, dwell_times, dwell_time_unit, min_on_times, testing_inp_info, pulse_length_unit):
     """
     This function takes a series of input parameters and converts them into a dictionary with a single
     pulse entry with a single-level pulse history. A separate dictionary for each viable combination of 
@@ -25,30 +130,25 @@ def write_testing_params_dict(num_pulses, dwell_time, dwell_time_unit, min_on_ti
         'delay_dur_unit': (str)
     }
     ]
-    :param: nums_pulses (number of pulses (int) in the single-level pulse history)
-    :param: dwell_time (off-time (float) between subsequent pulses)
+    :param: num_pulses_list (iterable of number of pulses (int) in a single-level pulse history)
+    :param: dwell_times (iterable of off-times (float) between subsequent pulses)
     :param: dwell_time_unit (unit (str) of the dwell time)
-    :param: min_on_time (minimum total amount of time (float) during which the flux is nonzero)
-    :param: rel_on_time_factors (iterable of factors (float) that scale the minimum on-time)
-    :param: flux_norm_factors (iterable of factors (float) that scale the maximum flux magnitude)
-    :param: flux_files (iterable of paths (str) to flux files)
+    :param: min_on_times (iterable of minimum total amount of time (float) during which the flux is nonzero)
     :param: pulse_length_unit (unit (str) of the pulse length)
     """
-    testing_child_dicts = np.ndarray((len(rel_on_time_factors), len(flux_norm_factors), len(flux_files)), dtype=object)
-    for (rel_on_time_factor_idx, rel_on_time_factor), (flux_norm_factor_idx, flux_norm_factor), (flux_file_idx, flux_file) in product(
-                enumerate(rel_on_time_factors),
-                enumerate(flux_norm_factors),
-                enumerate(flux_files)):
-        if rel_on_time_factor * flux_norm_factor > 1:
-            testing_child_dicts[rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx] = None
+    testing_child_dicts = np.empty((len(num_pulses_list), len(dwell_times), len(min_on_times)) + testing_inp_info.shape, dtype=object)
+    for (num_pulse_idx, dwell_time_idx, min_on_time_idx, rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx), _ in np.ndenumerate(testing_child_dicts):
+        if testing_inp_info[rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx] == None:
+            testing_child_dicts[num_pulse_idx, dwell_time_idx, min_on_time_idx, rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx] == None
         else:
-            testing_child_dicts[rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx] = {
+            rel_on_time_factor, flux_norm_factor, flux_file = testing_inp_info[rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx]
+            testing_child_dicts[num_pulse_idx, dwell_time_idx, min_on_time_idx, rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx] = {
                                         'type': 'pulse_entry',
-                                        'pulse_length': min_on_time * rel_on_time_factor,
+                                        'pulse_length': min_on_times[min_on_time_idx] * rel_on_time_factor,
                                         'pulse_length_unit': pulse_length_unit,
                                         'flux_filepath': flux_file,
                                         'flux_norm': flux_norm_factor,
-                                        'pulse_history': [(num_pulses, dwell_time, dwell_time_unit)],
+                                        'pulse_history': [(num_pulses_list[num_pulse_idx], dwell_times[dwell_time_idx], dwell_time_unit)],
                                         'delay_dur': 0.0,
                                         'delay_dur_unit': 's'}
     return testing_child_dicts

@@ -14,7 +14,7 @@ def make_single_level_ph_filename_strings(testing_inp_info, sqlite_conn, nums_pu
     :param: on_time_unit (unit (str) of min_on_times)
     :param: dwell_time_unit (unit (str) of dwell_times)
     """
-    filenames = np.empty((len(min_on_times), len(nums_pulses), len(dwell_times)) + testing_inp_info.shape, dtype=object)
+    filenames = np.empty((len(nums_pulses), len(dwell_times), len(min_on_times)) + testing_inp_info.shape, dtype=object)
     for (num_pulse_idx, dwell_time_idx, min_on_time_idx, rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx), _ in np.ndenumerate(filenames):
         entry = testing_inp_info[rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx]
         if entry is None:

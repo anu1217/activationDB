@@ -61,3 +61,6 @@ dwell_times :
   - 20
   - 30
 dwell_time_unit : 'y'  
+
+out_file_folder : /userspace/asrajendra/research/activationDB/testing_files/output_files
+alara_exec_path : /userspace/asrajendra/research/alara_installation/bld/src/alara

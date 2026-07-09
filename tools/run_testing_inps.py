@@ -5,11 +5,21 @@ import yaml
 
 def run_inp_files(inp_file_folder, out_file_folder, alara_exec_path):
     inp_file_list = os.listdir(inp_file_folder)
+    
     for inp_file in inp_file_list:
-        if os.path.islink(inp_file_folder+"/"+inp_file) or inp_file.endswith(".dmp"):
+        inp_str = inp_file_folder+"/"+inp_file
+        out_str = out_file_folder+"/"+inp_file+"_out"
+        # Ignore symlinks and dump files created by default
+        if os.path.islink(inp_str) or inp_file.endswith(".dmp"):
+            continue
+        # Ignore inputs that already have corresponding output
+        elif out_str in os.listdir(out_file_folder):
+            continue
+        # Ignore subdirectories
+        elif os.path.isdir(inp_str):
             continue
         else:
-            subprocess.run([alara_exec_path, "-o", out_file_folder+"/"+inp_file+"_out", inp_file_folder+"/"+inp_file], check=True) 
+            subprocess.run([alara_exec_path, "-o", out_str, inp_file_folder+"/"+inp_file], check=True) 
 
 def parse_args():
     parser = argparse.ArgumentParser()

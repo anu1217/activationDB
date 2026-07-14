@@ -85,7 +85,7 @@ def main():
     testing_child_dicts = tiptd.write_testing_params_dict(num_pulses_list, dwell_times, dwell_time_unit, min_on_times, testing_inp_info, on_time_unit)
 
     sqlite_conn = sqlite3.connect(sqlite_conn_db_name)
-    filenames = mtf.make_single_level_ph_filename_strings(testing_inp_info, sqlite_conn, num_pulses_list, dwell_times, min_on_times, on_time_unit, dwell_time_unit)
+    filenames = mtf.make_single_level_ph_filename_strings(testing_inp_info, sqlite_conn, num_pulses_list, dwell_times, min_on_times, on_time_unit, dwell_time_unit, trunc_tolerance)
     sqlite_conn.close()
 
     make_all_input_files(testing_child_dicts, flux_path_modifier, nuclib, volume, trunc_tolerance, inp_file_folder, filenames)

@@ -8,7 +8,7 @@ def run_inp_files(inp_file_folder, out_file_folder, alara_exec_path):
     for inp_file in inp_file_list:
         if os.path.islink(inp_file_folder+"/"+inp_file) or inp_file.endswith(".dmp"):
             continue
-        elif inp_file+"_out" in os.path.listdir(out_file_folder):
+        elif inp_file+"_out" in os.listdir(out_file_folder):
             continue
         else:
             subprocess.run([alara_exec_path, "-o", out_file_folder+"/"+inp_file+"_out", inp_file_folder+"/"+inp_file], check=True) 

@@ -63,5 +63,6 @@ dwell_times :
   - 30
 
 out_file_folder : /userspace/asrajendra/research/activationDB/testing_files/output_files
+perm_out_file_folder : /userspace/asrajendra/research/permanent_storage/testing_files/output_files
 alara_exec_path : /userspace/asrajendra/research/alara_installation/bld/src/alara
 dwell_time_unit : 'm'  

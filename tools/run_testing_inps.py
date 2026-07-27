@@ -3,7 +3,7 @@ import os
 import argparse
 import yaml
 
-def run_inp_files(inp_file_folder, out_file_folder, alara_exec_path):
+def run_inp_files(inp_file_folder, out_file_folder, perm_out_file_folder, alara_exec_path):
     inp_file_list = os.listdir(inp_file_folder)
     
     for inp_file in inp_file_list:
@@ -13,7 +13,7 @@ def run_inp_files(inp_file_folder, out_file_folder, alara_exec_path):
         if os.path.islink(inp_str) or inp_file.endswith(".dmp"):
             continue
         # Ignore inputs that already have corresponding output
-        elif out_str in os.listdir(out_file_folder):
+        elif out_str in os.listdir(perm_out_file_folder):
             continue
         # Ignore subdirectories
         elif os.path.isdir(inp_str):
@@ -43,9 +43,10 @@ def main():
 
     inp_file_folder = inputs['inp_file_folder']
     out_file_folder = inputs['out_file_folder']
+    perm_out_file_folder = inputs['perm_out_file_folder']
     alara_exec_path = inputs['alara_exec_path']
 
-    run_inp_files(inp_file_folder, out_file_folder, alara_exec_path)
+    run_inp_files(inp_file_folder, out_file_folder, perm_out_file_folder, alara_exec_path)
 
 if __name__ == "__main__":
     main()

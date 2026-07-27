@@ -7,6 +7,7 @@ min_on_times :
 min_on_time_unit : y 
 
 rel_on_time_factors :
+  - 1.0
   - 1.5
   - 2.0
   - 2.5

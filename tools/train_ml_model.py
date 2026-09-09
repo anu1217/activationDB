@@ -12,19 +12,6 @@ from sklearn.ensemble import (
 )
 from sklearn.linear_model import Ridge
 
-
-X_train = np.load("X_train.npy")
-Y_train = np.load("Y_train.npy")
-
-print("X_train shape:", X_train.shape)
-print("Y_train shape:", Y_train.shape)
-
-
-Y_train_flat = Y_train.reshape(Y_train.shape[0], -1)
-
-print("Y_train_flat shape:", Y_train_flat.shape)
-
-
 models = {
 
 
@@ -42,6 +29,7 @@ models = {
             ],
 
             "regressor__n_neighbors": [
+                1,
                 3,
                 5,
                 10,
@@ -143,50 +131,42 @@ models = {
     }
 }
 
+def optimize_estimator_hyperparams(X_train, Y_train_flat):
+    results = {}
 
-results = {}
+    for regressor_name, model_info in models.items():
 
-for name, model_info in models.items():
+        grid_search = GridSearchCV(
+            estimator=model_info["pipeline"],
+            param_grid=model_info["params"],
+            cv=5,
+            scoring="neg_mean_squared_error",
+            n_jobs=-1,
+            verbose=2
+        )
 
-    print("\n" + "=" * 60)
-    print(f"Optimizing {name}")
-    print("=" * 60)
+        grid_search.fit(X_train, Y_train_flat)
 
-    grid_search = GridSearchCV(
-        estimator=model_info["pipeline"],
-        param_grid=model_info["params"],
-        cv=5,
-        scoring="neg_mean_squared_error",
-        n_jobs=-1,
-        verbose=2
-    )
+        results[regressor_name] = grid_search
+    return results
 
-    grid_search.fit(X_train, Y_train_flat)
+def save_optimized_model(results):
+    for regressor_name, grid_search in results.items():
 
-    results[name] = grid_search
+        fileregressor_name = f"{regressor_name}_model.joblib"
 
-    print(f"\n{name} best parameters:")
-    print(grid_search.best_params_)
-
-    print(f"\n{name} best CV MSE:")
-    print(-grid_search.best_score_)
+        joblib.dump(
+            grid_search.best_estimator_,
+            fileregressor_name
+        )
 
 
-for name, grid_search in results.items():
-
-    filename = f"{name}_model.joblib"
 
     joblib.dump(
-        grid_search.best_estimator_,
-        filename
+        results,
+        "regressor_grid_search_results.joblib"
     )
 
-    print(f"Saved {name} model to {filename}")
 
-
-joblib.dump(
-    results,
-    "regressor_grid_search_results.joblib"
-)
-
-print("\nSaved GridSearchCV results.")
+def main():
+    pass

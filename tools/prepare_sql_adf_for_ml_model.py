@@ -3,12 +3,14 @@ import pandas as pd
 import numpy as np
 
 conn = sqlite3.connect("activation_results.db")
+filter_str = "%e-04"
 query = """SELECT nuclide, half_life, run_lbl, block_name, [num_dens_(atoms/cm3)], number_densities.flux_spec_shape_id, avg_flux_mag, t_irr, flux_spec_shape
         FROM number_densities
         JOIN flux_spectra
             ON number_densities.flux_spec_shape_id = flux_spectra.flux_spec_shape_id
+        WHERE run_lbl LIKE ?    
         """
-training_df = pd.read_sql_query(query, conn)
+training_df = pd.read_sql_query(query, conn, params=(filter_str,))
 conn.close()
 
 out_arr_list = []

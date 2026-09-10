@@ -1,6 +1,3 @@
-import numpy as np
-import joblib
-
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV
@@ -11,6 +8,12 @@ from sklearn.ensemble import (
     ExtraTreesRegressor,
 )
 from sklearn.linear_model import Ridge
+import joblib
+import prepare_sql_adf_for_ml_model
+import create_adf
+import sqlite3
+import argparse
+import yaml
 
 models = {
 
@@ -161,12 +164,38 @@ def save_optimized_model(results):
         )
 
 
-
     joblib.dump(
         results,
         "regressor_grid_search_results.joblib"
     )
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model_training_yaml', '-t', help="Path (str) to YAML containing information to train models")
+    args = parser.parse_args()
+    return args
+
+def read_yaml(yaml_arg):
+    '''
+    input:
+        yaml_arg : output of parse_args() corresponding to args.model_training_yaml
+    '''
+    with open(yaml_arg, 'r') as yaml_file:
+        inputs = yaml.safe_load(yaml_file)
+    return inputs
+
 
 def main():
-    pass
+    args = parse_args()
+    inputs = read_yaml(args.model_training_yaml)
+    filter_str = inputs['filter_str']
+    db_name = inputs['db_name']
+    ordered_nucs = inputs['ordered_nucs']
+
+    conn = sqlite3.connect(db_name)
+    training_df = create_adf.make_pdf_from_sql(conn, filter_str)
+    Y_train, X_train = prepare_sql_adf_for_ml_model.make_training_features_outputs(training_df, ordered_nucs)
+    Y_train_flat = Y_train.reshape(Y_train.shape[0], -1)
+
+    results = optimize_estimator_hyperparams(X_train, Y_train_flat)
+    save_optimized_model(results)

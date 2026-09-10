@@ -1,4 +1,4 @@
-import pandas as pd
+import polars as pl
 import numpy as np
 
 def make_pdf_from_sql(conn, filter_str):
@@ -19,9 +19,12 @@ def make_pdf_from_sql(conn, filter_str):
             ON number_densities.run_lbl = alara_simulations.id   
         WHERE alara_simulations.input_file LIKE ?    
         """
-    training_df = pd.read_sql_query(query, conn, params=(filter_str,), dtype={'flux_spec_shape_id' : np.int8,
-                                                                              'avg_flux_mag' : np.float32,
-                                                                              't_irr' : np.float32,
-                                                                              'num_dens_(atoms/cm3)': np.float32})
+    training_df = pl.read_database(query=query,
+                                   connection=conn,
+                                   execute_options={"parameters":(filter_str,)},
+                                   schema_overrides={'flux_spec_shape_id' : pl.UInt8,
+                                                    'avg_flux_mag' : pl.Float32,
+                                                    't_irr' : pl.Float32,
+                                                    'num_dens_(atoms/cm3)': pl.Float32})
     conn.close()
     return training_df

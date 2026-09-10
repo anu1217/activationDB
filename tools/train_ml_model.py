@@ -194,7 +194,7 @@ def main():
 
     conn = sqlite3.connect(db_name)
     training_df = create_adf.make_pdf_from_sql(conn, filter_str)
-    Y_train, X_train = prepare_sql_adf_for_ml_model.make_training_features_outputs(training_df, ordered_nucs)
+    X_train, Y_train = prepare_sql_adf_for_ml_model.make_training_features_outputs(training_df, ordered_nucs)
     Y_train_flat = Y_train.reshape(Y_train.shape[0], -1)
 
     results = optimize_estimator_hyperparams(X_train, Y_train_flat)

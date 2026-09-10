@@ -5,7 +5,7 @@ def make_pdf_from_sql(conn, filter_str):
     Create a Pandas DataFrame using a SQLite connection object
     :param: conn (SQLite Connection object)
     :param: filter_str (string used to select rows from only certain simulations.
-                        Set to "" to access all simulations.)
+                        Set to "%" to access all simulations.)
     '''
     query = """SELECT nuclide, run_lbl, block_name, [num_dens_(atoms/cm3)], number_densities.flux_spec_shape_id, 
         avg_flux_mag, t_irr, flux_spec_shape, alara_simulations.output_file

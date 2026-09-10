@@ -203,3 +203,6 @@ def main():
 
     results = optimize_estimator_hyperparams(X_train, Y_train_flat)
     save_optimized_model(results)
+
+if __name__ == "__main__":
+    main()

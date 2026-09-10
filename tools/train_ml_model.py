@@ -83,7 +83,7 @@ models = {
     "random_forest": {
         "pipeline": Pipeline([
             ("regressor", RandomForestRegressor(
-                n_jobs=-1,
+                n_jobs=1,
                 random_state=1
             ))
         ]),
@@ -112,7 +112,7 @@ models = {
     "extra_trees": {
         "pipeline": Pipeline([
             ("regressor", ExtraTreesRegressor(
-                n_jobs=-1,
+                n_jobs=1,
                 random_state=1
             ))
         ]),

@@ -1,5 +1,9 @@
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import (
+    StandardScaler,
+    MinMaxScaler,
+    RobustScaler,
+)
 from sklearn.model_selection import GridSearchCV
 
 from sklearn.neighbors import KNeighborsRegressor

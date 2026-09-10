@@ -10,7 +10,7 @@ def make_pdf_from_sql(conn, filter_str):
     query = """
         SELECT number_densities.nuclide, number_densities.run_lbl, number_densities.block_name, 
         number_densities.[num_dens_(atoms/cm3)], number_densities.flux_spec_shape_id, number_densities.t_irr,
-        flux_spectra.avg_flux_mag, flux_spectra.flux_spec_shape, alara_simulations.input_file
+        number_densities.avg_flux_mag, flux_spectra.flux_spec_shape, alara_simulations.input_file
         FROM number_densities
         JOIN flux_spectra
             ON number_densities.flux_spec_shape_id = flux_spectra.flux_spec_shape_id

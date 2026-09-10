@@ -1,7 +1,7 @@
 import polars as pl
 import numpy as np
 
-def make_pdf_from_sql(conn, filter_str):
+def make_pdf_from_sql(conn, filter_str, ordered_nucs):
     '''
     Create a Pandas DataFrame using a SQLite connection object
     :param: conn (SQLite Connection object)
@@ -22,7 +22,11 @@ def make_pdf_from_sql(conn, filter_str):
     training_df = pl.read_database(query=query,
                                    connection=conn,
                                    execute_options={"parameters":(filter_str,)},
-                                   schema_overrides={'flux_spec_shape_id' : pl.UInt8,
+                                   schema_overrides={'nuclide' : pl.Enum(ordered_nucs),
+                                                     'block_name' : pl.Enum(
+                                                        [ordered_nuc.replace("-", ":") for ordered_nuc in ordered_nucs]
+                                                        ),
+                                                    'flux_spec_shape_id' : pl.UInt8,
                                                     'avg_flux_mag' : pl.Float32,
                                                     't_irr' : pl.Float32,
                                                     'num_dens_(atoms/cm3)': pl.Float32})

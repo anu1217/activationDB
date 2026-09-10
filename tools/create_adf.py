@@ -7,14 +7,16 @@ def make_pdf_from_sql(conn, filter_str):
     :param: filter_str (string used to select rows from only certain simulations.
                         Set to "%" to access all simulations.)
     '''
-    query = """SELECT nuclide, run_lbl, block_name, [num_dens_(atoms/cm3)], number_densities.flux_spec_shape_id, 
-        avg_flux_mag, t_irr, flux_spec_shape, alara_simulations.output_file
+    query = """
+        SELECT number_densities.nuclide, number_densities.run_lbl, number_densities.block_name, 
+        number_densities.[num_dens_(atoms/cm3)], number_densities.flux_spec_shape_id, number_densities.t_irr
+        flux_spectra.avg_flux_mag, flux_spectra.flux_spec_shape, alara_simulations.input_file
         FROM number_densities
         JOIN flux_spectra
             ON number_densities.flux_spec_shape_id = flux_spectra.flux_spec_shape_id
         JOIN alara_simulations
             ON number_densities.run_lbl = alara_simulations.id   
-        WHERE output_file LIKE ?    
+        WHERE alara_simulations.input_file LIKE ?    
         """
     training_df = pd.read_sql_query(query, conn, params=(filter_str,))
     conn.close()

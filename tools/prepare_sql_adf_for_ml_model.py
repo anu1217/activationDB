@@ -1,4 +1,3 @@
-import pandas as pd
 import numpy as np
 
 def make_training_features_outputs(training_df, ordered_nucs):
@@ -18,4 +17,4 @@ def make_training_features_outputs(training_df, ordered_nucs):
         #Each run_lbl is associated with a single combination of each of the features    
         feature_arr_list.append(np.array((t_irr, avg_flux_mag, *flux_spec_shape)))
         out_arr_list.append(parent_child_nuc_arr)
-    return out_arr_list, feature_arr_list    
+    return np.array(feature_arr_list), np.array(out_arr_list)

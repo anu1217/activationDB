@@ -23,12 +23,12 @@ def make_pdf_from_sql(conn, filter_str, ordered_nucs):
                                    connection=conn,
                                    execute_options={"parameters":(filter_str,)},
                                    schema_overrides={'nuclide' : pl.Enum(ordered_nucs),
+                                                     'run_lbl' : pl.Categorical,
                                                      'block_name' : pl.Enum(
                                                         [ordered_nuc.replace("-", ":") for ordered_nuc in ordered_nucs]
                                                         ),
                                                     'flux_spec_shape_id' : pl.UInt8,
-                                                    'avg_flux_mag' : pl.Float32,
-                                                    't_irr' : pl.Float32,
-                                                    'num_dens_(atoms/cm3)': pl.Float32})
+                                                    'input_file' : pl.Categorical
+                                                    })
     conn.close()
     return training_df

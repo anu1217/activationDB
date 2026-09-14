@@ -196,14 +196,15 @@ def main():
     filter_str = inputs['filter_str']
     db_name = inputs['db_name']
     batch_size = inputs['batch_size']
-    ordered_nucs = inputs['ordered_nucs']
+    child_nucs = inputs['child_nucs']
+    parent_nucs = inputs['parent_nucs']
 
     conn = sqlite3.connect(db_name)
     dict_df = extract_sql_data.make_dict_from_small_table(conn)
-    partial_training_df = extract_sql_data.make_df_from_num_dens_table(conn, filter_str, batch_size, ordered_nucs)
+    partial_training_df = extract_sql_data.make_df_from_num_dens_table(conn, filter_str, batch_size, child_nucs, parent_nucs)
     partial_training_df = pl.concat([df for df in partial_training_df])
     conn.close()
-    X_train, Y_train = prepare_sql_adf_for_ml_model.make_training_features_outputs(partial_training_df, dict_df, ordered_nucs)
+    X_train, Y_train = prepare_sql_adf_for_ml_model.make_training_features_outputs(partial_training_df, dict_df, child_nucs, parent_nucs)
     Y_train_flat = Y_train.reshape(Y_train.shape[0], -1)
 
     results = optimize_estimator_hyperparams(X_train, Y_train_flat)

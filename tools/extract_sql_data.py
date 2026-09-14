@@ -15,7 +15,7 @@ def make_dict_from_small_table(conn):
     dict_df = zip(dict_df['flux_spec_shape_id'], dict_df['flux_spec_shape'])
     return dict_df
 
-def make_df_from_num_dens_table(conn, filter_str, ordered_nucs):
+def make_df_from_num_dens_table(conn, filter_str, batch_size, ordered_nucs):
     query = """
     SELECT nuclide, run_lbl, block_name, [num_dens_(atoms/cm3)], flux_spec_shape_id, t_irr, avg_flux_mag
     FROM number_densities
@@ -23,8 +23,10 @@ def make_df_from_num_dens_table(conn, filter_str, ordered_nucs):
         ON number_densities.run_lbl = alara_simulations.id
     WHERE alara_simulations.input_file LIKE ?    
     """
-    partial_training_df = pl.read_database(query=query,
+    partial_training_df_chunks = pl.read_database(query=query,
                                    connection=conn,
+                                   iter_batches = False,
+                                   batch_size = batch_size,
                                    execute_options={"parameters":(filter_str,)},
                                    schema_overrides={'nuclide' : pl.Enum(ordered_nucs),
                                                      'run_lbl' : pl.Categorical,
@@ -37,4 +39,4 @@ def make_df_from_num_dens_table(conn, filter_str, ordered_nucs):
                                                     'avg_flux_mag' : pl.Float32
                                                     }
                                                     )
-    return partial_training_df
+    return partial_training_df_chunks

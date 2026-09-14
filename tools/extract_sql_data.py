@@ -25,7 +25,7 @@ def make_df_from_num_dens_table(conn, filter_str, batch_size, ordered_nucs):
     """
     partial_training_df_chunks = pl.read_database(query=query,
                                    connection=conn,
-                                   iter_batches = False,
+                                   iter_batches = True,
                                    batch_size = batch_size,
                                    execute_options={"parameters":(filter_str,)},
                                    schema_overrides={'nuclide' : pl.Enum(ordered_nucs),

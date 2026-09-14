@@ -28,11 +28,10 @@ def make_df_from_num_dens_table(conn, filter_str, batch_size, ordered_nucs):
                                    iter_batches = True,
                                    batch_size = batch_size,
                                    execute_options={"parameters":(filter_str,)},
-                                   schema_overrides={'nuclide' : pl.Enum(ordered_nucs),
+                                   schema_overrides={'nuclide' : pl.Enum([ordered_nuc.replace(":", "-") for ordered_nuc in ordered_nucs]
+                                                                         ),
                                                      'run_lbl' : pl.Categorical,
-                                                     'block_name' : pl.Enum(
-                                                        [ordered_nuc.replace("-", ":") for ordered_nuc in ordered_nucs]
-                                                        ),
+                                                     'block_name' : pl.Enum(ordered_nucs),
                                                     'num_dens_(atoms/cm3)' : pl.Float32,
                                                     'flux_spec_shape_id' : pl.UInt8,
                                                     't_irr' : pl.Float32,

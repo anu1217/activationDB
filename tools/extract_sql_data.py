@@ -4,6 +4,7 @@ import numpy as np
 def make_dict_from_small_table(conn):
     query = """
     SELECT flux_spectra.flux_spec_shape_id, flux_spectra.flux_spec_shape
+    FROM flux_spectra
     """
     dict_df = pl.read_database(query=query,
                                connection=conn,

@@ -18,6 +18,7 @@ import extract_sql_data
 import sqlite3
 import argparse
 import yaml
+import polars as pl
 
 models = {
 
@@ -30,7 +31,7 @@ models = {
 
         "params": {
             "scaler": [
-                StandardScaler(), 
+                StandardScaler(),
                 MinMaxScaler(),
                 RobustScaler()
             ],

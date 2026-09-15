@@ -12,7 +12,7 @@ def make_dict_from_small_table(conn):
                                                    'flux_spec_shape' : pl.Categorical
                                                    }
                                 )
-    dict_df = zip(dict_df['flux_spec_shape_id'], dict_df['flux_spec_shape'])
+    dict_df = dict(zip(dict_df['flux_spec_shape_id'], dict_df['flux_spec_shape']))
     return dict_df
 
 def make_df_from_num_dens_table(conn, filter_str, batch_size, child_nucs, parent_nucs):

@@ -178,6 +178,7 @@ def save_optimized_model(results):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_training_yaml', '-t', help="Path (str) to YAML containing information to train models")
+    parser.add_argument('--use_stored_df', '-u', action='store_true', help="Use a df saved as .csv to train models")
     args = parser.parse_args()
     return args
 
@@ -202,13 +203,15 @@ def main():
 
     conn = sqlite3.connect(db_name)
     dict_df = extract_sql_data.make_dict_from_small_table(conn)
-    partial_training_df = extract_sql_data.make_df_from_num_dens_table(conn, filter_str, batch_size, child_nucs, parent_nucs)
-    partial_training_df = pl.concat([df for df in partial_training_df])
-    conn.close()
-    partial_training_df.write_csv("selected_df.csv")
+    if args.use_stored_df:
+        partial_training_df = pl.read_csv("selected_df.csv")
+    else:
+        partial_training_df = extract_sql_data.make_df_from_num_dens_table(conn, filter_str, batch_size, child_nucs, parent_nucs)
+        partial_training_df = pl.concat([df for df in partial_training_df])
+        partial_training_df.write_csv("selected_df.csv")
     X_train, Y_train = prepare_sql_adf_for_ml_model.make_training_features_outputs(partial_training_df, dict_df, child_nucs, parent_nucs)
     Y_train_flat = Y_train.reshape(Y_train.shape[0], -1)
-
+    conn.close()
     results = optimize_estimator_hyperparams(X_train, Y_train_flat)
     save_optimized_model(results)
 

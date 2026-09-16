@@ -205,6 +205,7 @@ def main():
     partial_training_df = extract_sql_data.make_df_from_num_dens_table(conn, filter_str, batch_size, child_nucs, parent_nucs)
     partial_training_df = pl.concat([df for df in partial_training_df])
     conn.close()
+    partial_training_df.write_csv("selected_df.csv")
     X_train, Y_train = prepare_sql_adf_for_ml_model.make_training_features_outputs(partial_training_df, dict_df, child_nucs, parent_nucs)
     Y_train_flat = Y_train.reshape(Y_train.shape[0], -1)
 

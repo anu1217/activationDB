@@ -149,7 +149,8 @@ def optimize_estimator_hyperparams(X_train, Y_train_flat):
             param_grid=model_info["params"],
             cv=5,
             scoring="neg_mean_squared_error",
-            n_jobs=-1,
+            n_jobs=1,
+            pre_dispatch="n_jobs",
             verbose=2
         )
 

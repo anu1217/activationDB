@@ -10,7 +10,7 @@ def make_training_features_outputs(partial_training_df, dict_df, child_nucs,
 
     for run_lbl in partial_training_df["run_lbl"].unique():
 
-        parent_child_nuc_arr = np.zeros((len(child_nucs), len(parent_nucs)))
+        parent_child_nuc_arr = np.zeros((len(child_nucs), len(parent_nucs)), dtype=np.float32)
 
         reduced_df = partial_training_df.filter(pl.col("run_lbl") == run_lbl)
 

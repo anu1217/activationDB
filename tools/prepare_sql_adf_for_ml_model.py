@@ -30,7 +30,7 @@ def make_training_features_outputs(partial_training_df, dict_df, child_nucs,
 
         # Each run_lbl is associated with a single combination of each of the features
         feature_arr_list.append(
-            np.array((t_irr, avg_flux_mag, *flux_spec_shape)))
+            np.array((t_irr, avg_flux_mag, *flux_spec_shape)), dtype=np.float32)
 
         out_arr_list.append(parent_child_nuc_arr)
     return np.array(feature_arr_list), np.array(out_arr_list)

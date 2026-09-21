@@ -34,3 +34,45 @@ def make_training_features_outputs(partial_training_df, dict_df, child_nucs,
 
         out_arr_list.append(parent_child_nuc_arr)
     return np.array(feature_arr_list), np.array(out_arr_list)
+
+def make_training_features_outputs_per_nuc_combo(partial_training_df, dict_df, child_nucs, parent_nucs):
+
+    feature_arr_list = []
+    out_arr_list = []
+
+    for df_row in partial_training_df.iter_rows(named=True):
+
+        child_nuc = df_row["nuclide"]
+        parent_nuc = df_row["block_name"]
+
+        t_irr = df_row["t_irr"]
+        avg_flux_mag = df_row["avg_flux_mag"]
+
+        flux_spec_shape = eval(
+            dict_df[df_row["flux_spec_shape_id"]]
+        )
+
+        # Include child and parent nuclide as features.
+        # Use their indices so that they are represented numerically.
+        child_nuc_idx = child_nucs.index(child_nuc)
+        parent_nuc_idx = parent_nucs.index(parent_nuc)
+
+        feature_arr_list.append(
+            np.array(
+                (
+                    t_irr,
+                    avg_flux_mag,
+                    child_nuc_idx,
+                    parent_nuc_idx,
+                    *flux_spec_shape,
+                ),
+                dtype=np.float32,
+            )
+        )
+
+        # One scalar output for this feature/nuclide combination
+        out_arr_list.append(
+            df_row["num_dens_(atoms/cm3)"]
+        )
+
+    return np.array(feature_arr_list), np.array(out_arr_list)

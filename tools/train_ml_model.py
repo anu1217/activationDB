@@ -204,7 +204,19 @@ def main():
     conn = sqlite3.connect(db_name)
     dict_df = extract_sql_data.make_dict_from_small_table(conn)
     if args.use_stored_df:
-        partial_training_df = pl.read_csv("selected_df.csv")
+        partial_training_df = pl.read_csv(
+            "selected_df.csv",
+            schema_overrides=
+                {
+                'nuclide' : pl.Enum(child_nucs),
+                'run_lbl' : pl.Categorical,
+                'block_name' : pl.Enum(parent_nucs),
+                'num_dens_(atoms/cm3)' : pl.Float32,
+                'flux_spec_shape_id' : pl.UInt8,
+                't_irr' : pl.Float32,
+                'avg_flux_mag' : pl.Float32
+                }
+            )
     else:
         partial_training_df = extract_sql_data.make_df_from_num_dens_table(conn, filter_str, batch_size, child_nucs, parent_nucs)
         partial_training_df = pl.concat([df for df in partial_training_df])

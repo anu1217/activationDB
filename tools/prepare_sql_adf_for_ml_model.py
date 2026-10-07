@@ -10,8 +10,7 @@ def make_training_features_outputs(partial_training_df, dict_df, child_nucs,
 
     for run_lbl in partial_training_df["run_lbl"].unique():
 
-        parent_child_nuc_arr = np.zeros((len(child_nucs), len(parent_nucs)),
-                                        dtype=np.float32)
+        parent_child_nuc_arr = np.zeros((len(child_nucs), len(parent_nucs)))
 
         reduced_df = partial_training_df.filter(pl.col("run_lbl") == run_lbl)
 
@@ -31,48 +30,43 @@ def make_training_features_outputs(partial_training_df, dict_df, child_nucs,
 
         # Each run_lbl is associated with a single combination of each of the features
         feature_arr_list.append(
-            np.array((t_irr, avg_flux_mag, *flux_spec_shape),
-                     dtype=np.float32))
+            np.array((t_irr, avg_flux_mag, *flux_spec_shape)))
 
         out_arr_list.append(parent_child_nuc_arr)
     return np.array(feature_arr_list), np.array(out_arr_list)
 
 
 def make_training_features_outputs_per_parent(partial_training_df, dict_df,
-                                              child_nucs, parent_nucs):
+                                              child_nucs, parent_nucs,
+                                              parent_idx):
 
+    parent = parent_nucs[parent_idx]
+
+    all_features = []
     all_out = []
 
-    for parent in parent_nucs:
+    partial_training_df = partial_training_df.filter(
+        pl.col("block_name") == parent)
 
-        all_features = []
-        run_out = []
+    for run_lbl in partial_training_df["run_lbl"].unique():
 
-        parent_reduced_df = partial_training_df.filter(
-            pl.col("block_name") == parent)
+        parent_run_reduced_df = partial_training_df.filter(
+            pl.col("run_lbl") == run_lbl)
 
-        for run_lbl in parent_reduced_df["run_lbl"].unique():
+        child_num_dens = np.zeros(len(child_nucs))
 
-            parent_run_reduced_df = parent_reduced_df.filter(
-                pl.col("run_lbl") == run_lbl)
+        for df_row in parent_run_reduced_df.iter_rows(named=True):
 
-            child_num_dens = np.zeros(len(child_nucs), dtype=np.float32)
+            child_idx = child_nucs.index(df_row["nuclide"])
 
-            for df_row in parent_run_reduced_df.iter_rows(named=True):
+            child_num_dens[child_idx] = (df_row["num_dens_(atoms/cm3)"])
 
-                child_idx = child_nucs.index(df_row["nuclide"])
+        flux_spec_shape = eval(dict_df[df_row["flux_spec_shape_id"]])
 
-                child_num_dens[child_idx] = (df_row["num_dens_(atoms/cm3)"])
+        run_features = np.array(
+            (df_row["t_irr"], df_row["avg_flux_mag"], *flux_spec_shape))
 
-            flux_spec_shape = eval(dict_df[df_row["flux_spec_shape_id"]])
+        all_features.append(run_features)
+        all_out.append(child_num_dens)
 
-            run_features = np.array(
-                (df_row["t_irr"], df_row["avg_flux_mag"], *flux_spec_shape),
-                dtype=np.float32)
-
-            all_features.append(run_features)
-            run_out.append(child_num_dens)
-
-        all_out.append(np.array(run_out, dtype=np.float32))
-
-    return np.array(all_features, dtype=np.float32), np.array(all_out, dtype=np.float32)
+    return (np.array(all_features), np.array(all_out))

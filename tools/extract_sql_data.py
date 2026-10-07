@@ -31,10 +31,7 @@ def make_df_from_num_dens_table(conn, filter_str, batch_size, child_nucs, parent
                                    schema_overrides={'nuclide' : pl.Enum(child_nucs),
                                                      'run_lbl' : pl.Categorical,
                                                      'block_name' : pl.Enum(parent_nucs),
-                                                    'num_dens_(atoms/cm3)' : pl.Float32,
-                                                    'flux_spec_shape_id' : pl.UInt8,
-                                                    't_irr' : pl.Float32,
-                                                    'avg_flux_mag' : pl.Float32
+                                                    'flux_spec_shape_id' : pl.UInt8
                                                     }
                                                     )
     return partial_training_df_chunks

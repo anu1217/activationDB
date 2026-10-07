@@ -105,13 +105,14 @@ def map_adf_flux_tirr(adf, flux_array, sqlite_conn, t_irr, flux_norm):
     adf['t_irr'] = np.array([t_irr]*len(adf))
     return adf
 
-def write_to_sqlite(adf, sqlite_conn):
+def write_to_sqlite(adf, table_name, sqlite_conn):
     '''
     Initialize a connection to a SQLite database, and write the adf
-    to it. Catches any errors produced during this process.
+    to it. Catches any errors produced during this process. The desired table name
+    (corresponding to either testing or training) is required.
     '''
     try:
-        adf.to_sql('number_densities',
+        adf.to_sql(table_name,
                    sqlite_conn,
                    if_exists='append',
                    method="multi",

@@ -16,13 +16,13 @@ def make_single_level_ph_filename_strings(max_fluence_factors, sqlite_conn, nums
     :param: trunc_tol (truncation tolerance (float) used to build input files)
     """
     filenames = np.empty((len(min_on_times), len(nums_pulses), len(dwell_times)) + max_fluence_factors.shape, dtype=object)
-    for (num_pulse_idx, dwell_time_idx, min_on_time_idx, rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx), _ in np.ndenumerate(filenames):
+    for (min_on_time_idx, num_pulse_idx, dwell_time_idx, rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx), _ in np.ndenumerate(filenames):
         entry = max_fluence_factors[rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx]
         if entry is None:
-            filenames[num_pulse_idx, dwell_time_idx, min_on_time_idx, rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx] = None
+            filenames[min_on_time_idx, num_pulse_idx, dwell_time_idx, rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx] = None
         else:
             rel_on_time_factor, flux_norm_factor, flux_file = entry
             flux_id = qsd.find_flux_spec_shape_id(sqlite_conn, "flux_file", flux_file)
             filename = f"{nums_pulses[num_pulse_idx]}_{dwell_times[dwell_time_idx]}{dwell_time_unit}_{flux_id}_{flux_norm_factor}_{min_on_times[min_on_time_idx]}{on_time_unit}_{rel_on_time_factor}_{float(trunc_tol):.3e}"
-            filenames[num_pulse_idx, dwell_time_idx, min_on_time_idx, rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx] = filename
+            filenames[min_on_time_idx, num_pulse_idx, dwell_time_idx, rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx] = filename
     return filenames

@@ -105,7 +105,7 @@ def main():
     if args.training == True:
         filename_array = make_train_f.make_filename_strings(max_fluence_factors, sqlite_conn, min_on_times, on_time_unit, trunc_tolerance)
     elif args.testing == True:    
-        nums_pulses = inputs['nums_pulses_list']
+        nums_pulses = inputs['num_pulses_list']
         dwell_times = inputs['dwell_times']
         dwell_time_unit = inputs['dwell_time_unit']
         filename_array = make_test_f.make_single_level_ph_filename_strings(max_fluence_factors, sqlite_conn, nums_pulses, dwell_times, min_on_times, on_time_unit, dwell_time_unit, trunc_tolerance)

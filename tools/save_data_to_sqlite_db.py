@@ -12,26 +12,22 @@ import sched_post_processor
 import schedule_transforms
 import alara_bookkeeping
 
-def make_tirr(sch_tree, filename_idx_len, adf, flux_array, sqlite_conn, flux_norm):
+def make_tirr(sch_tree, adf, flux_array, sqlite_conn, flux_norm, training_bool, testing_bool):
     t_irr_flat = schedule_transforms.flatten_schedule(sch_tree)[0]
     adf = adf_to_sqlite.map_adf_flux_tirr(adf, flux_array, sqlite_conn, t_irr_flat, flux_norm)
-    if filename_idx_len == 6:
+    if testing_bool == True:
         adf.rename(columns={'t_irr' : 't_irr_flat'}, inplace=True)
         t_irr_compressed = schedule_transforms.compress_schedule(sch_tree)
         adf = adf_to_sqlite.map_adf_flux_tirr(adf, flux_array, sqlite_conn, t_irr_compressed, flux_norm)
         adf.rename(columns={'t_irr' : 't_irr_compressed'}, inplace=True)
     return adf    
 
-def save_out_to_db(max_fluence_factors, filename_array, inp_file_folder, out_file_folder, flux_path_modifier, sqlite_conn, git_hash, table_name):
+def save_out_to_db(max_fluence_factors, filename_array, inp_file_folder, out_file_folder, flux_path_modifier, sqlite_conn, git_hash, table_name, training_bool, testing_bool):
     for idx, _ in np.ndenumerate(filename_array):
-        if len(idx) == 4:
+        if training_bool == True:
             min_on_time_idx, rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx = idx
-        elif len(idx) == 6:
-            num_pulse_idx, dwell_time_idx, min_on_time_idx, rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx = idx
-        else:
-            raise ValueError(
-                f"Unexpected filename_array dimensions: {filename_array.ndim}"
-            )       
+        elif testing_bool == True:
+            num_pulse_idx, dwell_time_idx, min_on_time_idx, rel_on_time_factor_idx, flux_norm_factor_idx, flux_file_idx = idx     
         inp_filename = filename_array[idx]
         if inp_filename is None:
             # by construction, a filename_array entry is None only whenever a max_fluence_factors entry is None (and vice versa)
@@ -52,12 +48,8 @@ def save_out_to_db(max_fluence_factors, filename_array, inp_file_folder, out_fil
             pulse_dict = sched_post_processor.read_pulse_histories(lines)
             sch_tree = sched_post_processor.make_nested_dict(lines)
             sch_tree = sched_post_processor.add_ph_to_sch_tree(sch_tree, pulse_dict)['top_schedule']['children']
-            
-            #t_irr = schedule_transforms.flatten_schedule(sch_tree)[0]
-            # need to account for dwell times
-            #adf = adf_to_sqlite.map_adf_flux_tirr(adf, flux_array, sqlite_conn, t_irr, flux_norm)
 
-            adf = make_tirr(sch_tree, len(idx), adf, flux_array, sqlite_conn, flux_norm)
+            adf = make_tirr(sch_tree, adf, flux_array, sqlite_conn, flux_norm, training_bool, testing_bool)
             conn_cursor = adf_to_sqlite.write_to_sqlite(adf, table_name, sqlite_conn)
 
             alara_bookkeeping.create_sqlite_table(conn_cursor)
@@ -74,6 +66,9 @@ def save_out_to_db(max_fluence_factors, filename_array, inp_file_folder, out_fil
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_yaml', '-t', help="Path (str) to YAML containing inputs to construct training or testing data")
+    test_or_train_group = parser.add_mutually_exclusive_group(required=True)
+    test_or_train_group.add_argument('--training', action="store_true", help="Use YAML for training data")
+    test_or_train_group.add_argument('--testing', action="store_true", help="Use YAML for testing data")
     args = parser.parse_args()
     return args
 
@@ -88,10 +83,12 @@ def read_yaml(yaml_arg):
 
 def main():
     args = parse_args()
-    inputs = read_yaml(args.training_case_yaml)
+    inputs = read_yaml(args.data_yaml)
+    training_bool = args.training
+    testing_bool = args.testing
 
     min_on_times = inputs['min_on_times']
-    time_unit = inputs['min_on_time_unit']
+    on_time_unit = inputs['min_on_on_time_unit']
     rel_on_time_factors = inputs['rel_on_time_factors']
     flux_norm_factors = inputs['flux_norm_factors']
     flux_files = inputs['flux_files']
@@ -105,8 +102,14 @@ def main():
 
     max_fluence_factors = tiptd.make_flux_tirr_combos(rel_on_time_factors, flux_norm_factors, flux_files)
     sqlite_conn = sqlite3.connect(sqlite_conn_db_name)
-    filename_array = make_train_f.make_filename_strings(max_fluence_factors, sqlite_conn, min_on_times, time_unit, trunc_tolerance)
-    save_out_to_db(max_fluence_factors, filename_array, inp_file_folder, out_file_folder, flux_path_modifier, sqlite_conn, git_hash, table_name)
+    if args.training == True:
+        filename_array = make_train_f.make_filename_strings(max_fluence_factors, sqlite_conn, min_on_times, on_time_unit, trunc_tolerance)
+    elif args.testing == True:    
+        nums_pulses = inputs['nums_pulses_list']
+        dwell_times = inputs['dwell_times']
+        dwell_time_unit = inputs['dwell_time_unit']
+        filename_array = make_test_f.make_single_level_ph_filename_strings(max_fluence_factors, sqlite_conn, nums_pulses, dwell_times, min_on_times, on_time_unit, dwell_time_unit, trunc_tolerance)
+    save_out_to_db(max_fluence_factors, filename_array, inp_file_folder, out_file_folder, flux_path_modifier, sqlite_conn, git_hash, table_name, training_bool, testing_bool)
     sqlite_conn.close()
 
 

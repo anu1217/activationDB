@@ -12,7 +12,7 @@ import sched_post_processor
 import schedule_transforms
 import alara_bookkeeping
 
-def make_tirr(sch_tree, adf, flux_array, sqlite_conn, flux_norm, training_bool, testing_bool):
+def make_tirr(sch_tree, adf, flux_array, sqlite_conn, flux_norm, testing_bool):
     t_irr_flat = schedule_transforms.flatten_schedule(sch_tree)[0]
     adf = adf_to_sqlite.map_adf_flux_tirr(adf, flux_array, sqlite_conn, t_irr_flat, flux_norm)
     if testing_bool == True:
@@ -49,7 +49,7 @@ def save_out_to_db(max_fluence_factors, filename_array, inp_file_folder, out_fil
             sch_tree = sched_post_processor.make_nested_dict(lines)
             sch_tree = sched_post_processor.add_ph_to_sch_tree(sch_tree, pulse_dict)['top_schedule']['children']
 
-            adf = make_tirr(sch_tree, adf, flux_array, sqlite_conn, flux_norm, training_bool, testing_bool)
+            adf = make_tirr(sch_tree, adf, flux_array, sqlite_conn, flux_norm, testing_bool)
             conn_cursor = adf_to_sqlite.write_to_sqlite(adf, table_name, sqlite_conn)
 
             alara_bookkeeping.create_sqlite_table(conn_cursor)

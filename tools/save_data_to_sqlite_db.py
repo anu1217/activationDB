@@ -88,7 +88,7 @@ def main():
     testing_bool = args.testing
 
     min_on_times = inputs['min_on_times']
-    on_time_unit = inputs['min_on_on_time_unit']
+    on_time_unit = inputs['min_on_time_unit']
     rel_on_time_factors = inputs['rel_on_time_factors']
     flux_norm_factors = inputs['flux_norm_factors']
     flux_files = inputs['flux_files']

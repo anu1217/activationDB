@@ -149,7 +149,7 @@ def optimize_estimator_hyperparams(X_train, Y_train_flat):
             param_grid=model_info["params"],
             cv=5,
             scoring="neg_mean_squared_error",
-            n_jobs=1,
+            n_jobs=-1,
             pre_dispatch="n_jobs",
             verbose=2
         )
@@ -211,10 +211,7 @@ def main():
                 'nuclide' : pl.Enum(child_nucs),
                 'run_lbl' : pl.Categorical,
                 'block_name' : pl.Enum(parent_nucs),
-                'num_dens_(atoms/cm3)' : pl.Float32,
                 'flux_spec_shape_id' : pl.UInt8,
-                't_irr' : pl.Float32,
-                'avg_flux_mag' : pl.Float32
                 }
             )
     else:

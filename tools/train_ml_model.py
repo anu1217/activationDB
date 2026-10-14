@@ -215,7 +215,7 @@ def main():
                 }
             )
     else:
-        partial_training_df = extract_sql_data.make_df_from_num_dens_table(conn, filter_str, batch_size, child_nucs, parent_nucs)
+        partial_training_df = extract_sql_data.make_dfs_from_num_dens_table(conn, filter_str, batch_size, child_nucs, parent_nucs)
         partial_training_df = pl.concat([df for df in partial_training_df])
         partial_training_df.write_csv("selected_df.csv")
     conn.close()    

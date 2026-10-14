@@ -3,7 +3,7 @@ import polars as pl
 
 
 def make_training_features_outputs(partial_training_df, dict_df, child_nucs,
-                                   parent_nucs):
+                                   parent_nucs, approx_name=None):
 
     out_arr_list = []
     feature_arr_list = []
@@ -22,8 +22,12 @@ def make_training_features_outputs(partial_training_df, dict_df, child_nucs,
             parent_child_nuc_arr[
                 child_nucs.index(child_nuc),
                 parent_nucs.index(parent_nuc)] = df_row["num_dens_(atoms/cm3)"]
-
-            t_irr = df_row["t_irr"]
+            if approx_name == "flattening":
+                t_irr = df_row['t_irr_flat']
+            elif approx_name == "compression":
+                t_irr = df_row['t_irr_compressed']
+            else:    
+                t_irr = df_row['t_irr']
             avg_flux_mag = df_row["avg_flux_mag"]
 
             flux_spec_shape = eval(dict_df[df_row["flux_spec_shape_id"]])
@@ -38,7 +42,7 @@ def make_training_features_outputs(partial_training_df, dict_df, child_nucs,
 
 def make_training_features_outputs_per_parent(partial_training_df, dict_df,
                                               child_nucs, parent_nucs,
-                                              parent_idx):
+                                              parent_idx, approx_name=None):
 
     parent = parent_nucs[parent_idx]
 
@@ -62,9 +66,14 @@ def make_training_features_outputs_per_parent(partial_training_df, dict_df,
             child_num_dens[child_idx] = (df_row["num_dens_(atoms/cm3)"])
 
         flux_spec_shape = eval(dict_df[df_row["flux_spec_shape_id"]])
-
+        if approx_name == "flattening":
+            t_irr = df_row['t_irr_flat']
+        elif approx_name == "compression":    
+            t_irr = df_row['t_irr_compressed']
+        else:
+            t_irr = df_row["t_irr"]    
         run_features = np.array(
-            (df_row["t_irr"], df_row["avg_flux_mag"], *flux_spec_shape))
+            (t_irr, df_row["avg_flux_mag"], *flux_spec_shape))
 
         all_features.append(run_features)
         all_out.append(child_num_dens)

@@ -219,7 +219,7 @@ def main():
         partial_training_df = pl.concat([df for df in partial_training_df])
         partial_training_df.write_csv("selected_df.csv")
     conn.close()    
-    X_train, Y_train = prepare_sql_adf_for_ml_model.make_training_features_outputs(partial_training_df, dict_df, child_nucs, parent_nucs)
+    X_train, Y_train = prepare_sql_adf_for_ml_model.make_features_outputs(partial_training_df, dict_df, child_nucs, parent_nucs)
     Y_train = Y_train.reshape(Y_train.shape[0], -1)
     results = optimize_estimator_hyperparams(X_train, Y_train)
     save_optimized_model(results)

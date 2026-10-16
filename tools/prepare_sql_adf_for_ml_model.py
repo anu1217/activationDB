@@ -2,7 +2,7 @@ import numpy as np
 import polars as pl
 
 
-def make_training_features_outputs(partial_training_df, dict_df, child_nucs,
+def make_features_outputs(partial_training_df, dict_df, child_nucs,
                                    parent_nucs, approx_name=None):
 
     out_arr_list = []
@@ -40,7 +40,7 @@ def make_training_features_outputs(partial_training_df, dict_df, child_nucs,
     return np.array(feature_arr_list), np.array(out_arr_list)
 
 
-def make_training_features_outputs_per_parent(partial_training_df, dict_df,
+def make_features_outputs_per_parent(partial_training_df, dict_df,
                                               child_nucs, parent_nucs,
                                               parent_idx, approx_name=None):
 

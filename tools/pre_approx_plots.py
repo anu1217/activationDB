@@ -31,12 +31,6 @@ def store_parent_errors(knn_file, parent_nuc, filename):
         print(f"{parent_nuc} R2: {r2}", file=knn_file)
     return available_parent_nucs, parent_rmse, parent_mae, parent_r2, Y_test, Y_pred
 
-def make_masks(true_densities, abs_delta_N, delta_N):
-    del_N_v_N_log_log_mask= ((true_densities > 0) & (abs_delta_N > 0) & (np.isfinite(true_densities)) & (np.isfinite(abs_delta_N)))
-    del_N_by_N_v_N_lin_mask = ((true_densities != 0) & np.isfinite(true_densities) & (np.isfinite(delta_N)))
-
-    return del_N_v_N_log_log_mask, del_N_by_N_v_N_lin_mask
-
 def main():
     inputs = open_yaml()
     parent_nucs = inputs["parent_nucs"]
@@ -59,7 +53,8 @@ def main():
             delta_N = (Y_pred - Y_test).ravel()
             abs_delta_N = np.abs(Y_pred - Y_test).ravel()
 
-            del_N_v_N_log_log_mask, del_N_by_N_v_N_lin_mask = make_masks(true_densities, abs_delta_N, delta_N)
+            del_N_v_N_log_log_mask= ((true_densities > 0) & (abs_delta_N > 0) & (np.isfinite(true_densities)) & (np.isfinite(abs_delta_N)))
+            del_N_by_N_v_N_lin_mask = ((true_densities != 0) & np.isfinite(true_densities) & (np.isfinite(delta_N)))
             print(
             f"{parent_nuc} absolute error: {np.sum(del_N_v_N_log_log_mask)} plotted, {np.sum(~del_N_v_N_log_log_mask)} excluded",
             file=knn_file

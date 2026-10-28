@@ -33,12 +33,11 @@ def make_dfs_from_num_dens_table(conn, filter_str, batch_size, child_nucs, paren
     WHERE alara_simulations.input_file LIKE ?    
     """
     if approx_name is not None:
-        query.replace("number_densities", "testing_number_densities")
+        query = query.replace("number_densities", "testing_case_densities")
     if approx_name == "flattening":
-        query.replace("t_irr", "t_irr_flat")
+        query = query.replace("t_irr", "t_irr_flat")
     if approx_name == "compression":
-        query.replace("t_irr, t_irr_compressed")
-
+        query = query.replace("t_irr, t_irr_compressed")
     partial_training_df_chunks = pl.read_database(query=query,
                                    connection=conn,
                                    iter_batches = True,

@@ -185,7 +185,7 @@ def parse_args(argv=None):
         "--model_training_yaml", "--model-training-yaml", "-t", required=True,
         help="YAML containing db_name, filter_str, batch_size, child_nucs, and parent_nucs.",
     )
-    parser.add_argument("--output-dir", "-o", default="knn_training_output")
+    parser.add_argument("--output-dir", "-o", default="knn_training_output_csr")
     parser.add_argument("--cv", type=int, default=5, help="Cross-validation folds (default: 5).")
     parser.add_argument(
         "--use_stored_df", "--use-stored-df", "-u", action="store_true",
@@ -308,7 +308,7 @@ def main(argv=None):
 
     output_dir = Path(args.output_dir).expanduser().resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
-    model_path = output_dir / "knn_model.joblib"
+    model_path = output_dir / "knn_model_csr.joblib"
     joblib.dump({
         "model": search.best_estimator_,
         "sample_ids": sample_ids,
@@ -318,7 +318,7 @@ def main(argv=None):
         "best_cv_neg_mean_squared_error": float(search.best_score_),
         "sklearn_version": sklearn.__version__,
     }, model_path)
-    _write_cv_results(search, output_dir / "knn_cv_results.csv")
+    _write_cv_results(search, output_dir / "knn_cv_results_csr.csv")
     summary = {
         "n_samples": len(sample_ids), "n_features": X_train.shape[1],
         "n_outputs": Y_csr.shape[1], "target_shape": [len(children), len(parents)],
@@ -330,7 +330,7 @@ def main(argv=None):
         "final_refit_samples": len(sample_ids),
         "sklearn_version": sklearn.__version__,
     }
-    with (output_dir / "knn_training_summary.json").open("w", encoding="utf-8") as output:
+    with (output_dir / "knn_training_summary_csr.json").open("w", encoding="utf-8") as output:
         json.dump(summary, output, indent=2, default=_json_default)
         output.write("\n")
     print(f"Best settings: {search.best_params_}", flush=True)

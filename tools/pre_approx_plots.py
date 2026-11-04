@@ -31,6 +31,159 @@ def store_parent_errors(knn_file, parent_nuc, filename):
         print(f"{parent_nuc} R2: {r2}", file=knn_file)
     return available_parent_nucs, parent_rmse, parent_mae, parent_r2, Y_test, Y_pred
 
+def plot_abs_err_v_n(del_N_v_N_log_log_mask, true_densities, abs_delta_N, plot_folder, parent_nuc):
+    fig, ax = plt.subplots(figsize=(10, 8))
+    ax.scatter(true_densities[del_N_v_N_log_log_mask], abs_delta_N[del_N_v_N_log_log_mask], s=5, alpha=0.3)
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.set_xlabel("True Number Density (atoms/cm³)")
+    ax.set_ylabel(r"Absolute Error $\Delta$N (atoms/cm³)")
+    ax.set_title(f"Absolute KNN Prediction Error vs True Number Density (Log-Log): {parent_nuc}")
+    fig.tight_layout()
+    fig.savefig(f"{plot_folder}/{parent_nuc}_abs_delta_N_vs_N_log.png", dpi=300)
+    plt.close(fig)
+
+def plot_sgn_frac_err_v_n(true_densities, fractional_errors, del_N_by_N_v_N_lin_mask, plot_folder, parent_nuc):
+    fig, ax = plt.subplots(figsize=(10, 8))
+    ax.scatter(
+        true_densities[del_N_by_N_v_N_lin_mask],
+        fractional_errors[del_N_by_N_v_N_lin_mask],
+        s=5,
+        alpha=0.3
+    )
+    ax.axhline(0, color="black", linewidth=1)
+    ax.set_xlabel("True Number Density (atoms/cm³)")
+    ax.set_ylabel("Signed Fractional Error")
+    ax.set_title(f"KNN Signed Fractional Error vs True Number Density: {parent_nuc}")
+    fig.tight_layout()
+    fig.savefig(f"{plot_folder}/{parent_nuc}_fractional_error_linear.png", dpi=300)
+    plt.close(fig)    
+
+def plot_abs_frac_err_v_n(true_densities, abs_fractional_errors, del_N_by_N_v_N_log_log_mask, plot_folder, parent_nuc):
+    fig, ax = plt.subplots(figsize=(10, 8))
+    ax.scatter(
+        true_densities[del_N_by_N_v_N_log_log_mask],
+        abs_fractional_errors[del_N_by_N_v_N_log_log_mask],
+        s=5,
+        alpha=0.3
+    )
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.set_xlabel("True Number Density (atoms/cm³)")
+    ax.set_ylabel("Absolute Fractional Error")
+    ax.set_title(
+        f"KNN Absolute Fractional Error vs True Number Density (Log-Log): {parent_nuc}"
+    )
+    fig.tight_layout()
+    fig.savefig(f"{plot_folder}/{parent_nuc}_fractional_error_log.png", dpi=300)
+    plt.close(fig)
+
+def plot_unmasked_abs_del_N_ecdf(finite_abs_delta_N, plot_folder, parent_nuc):
+    abs_delta_N_result = ecdf(finite_abs_delta_N)
+
+    plt.figure()
+    plt.step(
+        abs_delta_N_result.cdf.quantiles,
+        abs_delta_N_result.cdf.probabilities,
+        where="post"
+    )
+    plt.xlabel("Absolute Error |Predicted Density - True Density|")
+    plt.ylabel("Cumulative Fraction")
+    plt.title("ECDF of Absolute Errors")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(f"{plot_folder}/{parent_nuc}_unmasked_absolute_delta_N_ecdf.png", dpi=300, bbox_inches="tight")
+    plt.close()
+
+def plot_masked_abs_del_N_ecdf(abs_delta_N_masked, plot_folder, parent_nuc):
+    abs_delta_N_result_masked = ecdf(abs_delta_N_masked)
+
+    plt.figure()
+    plt.step(
+        abs_delta_N_result_masked.cdf.quantiles,
+        abs_delta_N_result_masked.cdf.probabilities,
+        where="post"
+    )
+    plt.xscale("log")
+    plt.yscale("log")
+    plt.xlabel("Absolute Error |Predicted Density - True Density|")
+    plt.ylabel("Cumulative Fraction")
+    plt.title("Masked ECDF of Absolute Errors")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(f"{plot_folder}/{parent_nuc}_masked_absolute_delta_N_ecdf.png", dpi=300, bbox_inches="tight")
+    plt.close()
+
+def plot_frac_del_N_masked_ecdf(frac_delta_N_masked, plot_folder, parent_nuc):
+    frac_delta_N_result_masked = ecdf(frac_delta_N_masked)
+
+    plt.figure()
+    plt.step(
+        frac_delta_N_result_masked.cdf.quantiles,
+        frac_delta_N_result_masked.cdf.probabilities,
+        where="post"
+    )
+    plt.xscale("log")
+    plt.yscale("log")
+    plt.xlabel("Fractional Error |Predicted Density - True Density|")
+    plt.ylabel("Cumulative Fraction")
+    plt.title("Masked ECDF of Fractional Errors")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(f"{plot_folder}/{parent_nuc}_masked_fractional_delta_N_ecdf.png", dpi=300, bbox_inches="tight")
+    plt.close()    
+
+def plot_num_dens_weighted_ecdf_v_abs_err(sorted_errors, cumulative_fraction, parent_nuc, plot_folder):
+    plt.figure()
+    plt.step(sorted_errors, cumulative_fraction, where="post")
+    plt.xscale("log")
+    plt.yscale("log")
+    plt.xlabel("Absolute Error |Predicted Density - True Density|")
+    plt.ylabel("Cumulative Fraction of Total Number Density")
+    plt.title(f"Number-Density-Weighted ECDF: {parent_nuc}")
+    plt.grid(True, which="both")
+    plt.tight_layout()
+    plt.savefig(
+        f"{plot_folder}/{parent_nuc}_abs_delta_N_density_weighted_ecdf_loglog.png",
+        dpi=300,
+        bbox_inches="tight"
+    )
+    plt.close()
+
+def plot_num_dens_weighted_ecdf_v_abs_frac_err(sorted_frac_delta_N_errors, cumulative_frac_delta_N_fraction, plot_folder,
+                                               parent_nuc):
+    plt.figure()
+    plt.step(sorted_frac_delta_N_errors, cumulative_frac_delta_N_fraction, where="post")
+    plt.xscale("log")
+    plt.yscale("log")
+    plt.xlabel("Fractional Error |Predicted Density - True Density| / True Density")
+    plt.ylabel("Cumulative Fraction of Total Number Density")
+    plt.title("Number-Density-Weighted ECDF (Log-Log)")
+    plt.grid(True, which="both")
+    plt.tight_layout()
+    plt.savefig(f"{plot_folder}/{parent_nuc}_frac_delta_N_density_weighted_ecdf_loglog.png", dpi=300, bbox_inches="tight")
+    plt.close()
+
+def plot_err_v_num_dens(true_densities, delta_N, parent_nuc, plot_folder):
+    fig, ax = plt.subplots(figsize=(10, 8))
+    ax.scatter(true_densities, delta_N, s=5, alpha=0.3)
+    ax.set_xlabel("True Number Density (atoms/cm³)")
+    ax.set_ylabel(r"Error $\Delta$N (atoms/cm³)")
+    ax.set_title(f"KNN Prediction Error vs True Number Density: {parent_nuc}")
+    fig.tight_layout()
+    fig.savefig(f"{plot_folder}/{parent_nuc}_delta_N_vs_N.png", dpi=300)
+    plt.close(fig)
+
+def plot_abs_err_v_num_dens(true_densities, abs_delta_N, parent_nuc, plot_folder):
+    fig, ax = plt.subplots(figsize=(10, 8))
+    ax.scatter(true_densities, abs_delta_N, s=5, alpha=0.3)
+    ax.set_xlabel("True Number Density (atoms/cm³)")
+    ax.set_ylabel(r"Absolute Error $\Delta$N (atoms/cm³)")
+    ax.set_title(f"Absolute KNN Prediction Error vs True Number Density: {parent_nuc}")
+    fig.tight_layout()
+    fig.savefig(f"{plot_folder}/{parent_nuc}_abs_delta_N_vs_N.png", dpi=300)
+    plt.close(fig)
+
 def main():
     inputs = open_yaml()
     parent_nucs = inputs["parent_nucs"]
@@ -49,47 +202,27 @@ def main():
             parent_rmse.extend(current_parent_rmse)
             parent_mae.extend(current_parent_mae)
             parent_r2.extend(current_parent_r2)
+
             true_densities = Y_test.ravel()
             delta_N = (Y_pred - Y_test).ravel()
             abs_delta_N = np.abs(Y_pred - Y_test).ravel()
 
             del_N_v_N_log_log_mask= ((true_densities > 0) & (abs_delta_N > 0) & (np.isfinite(true_densities)) & (np.isfinite(abs_delta_N)))
             del_N_by_N_v_N_lin_mask = ((true_densities != 0) & np.isfinite(true_densities) & (np.isfinite(delta_N)))
+
             print(
             f"{parent_nuc} absolute error: {np.sum(del_N_v_N_log_log_mask)} plotted, {np.sum(~del_N_v_N_log_log_mask)} excluded",
             file=knn_file
                 )
             if np.any(del_N_v_N_log_log_mask):
-                fig, ax = plt.subplots(figsize=(10, 8))
-                ax.scatter(true_densities[del_N_v_N_log_log_mask], abs_delta_N[del_N_v_N_log_log_mask], s=5, alpha=0.3)
-                ax.set_xscale("log")
-                ax.set_yscale("log")
-                ax.set_xlabel("True Number Density (atoms/cm³)")
-                ax.set_ylabel(r"Absolute Error $\Delta$N (atoms/cm³)")
-                ax.set_title(f"Absolute KNN Prediction Error vs True Number Density (Log-Log): {parent_nuc}")
-                fig.tight_layout()
-                fig.savefig(f"{plot_folder}/{parent_nuc}_abs_delta_N_vs_N_log.png", dpi=300)
-                plt.close(fig)
+                plot_abs_err_v_n(del_N_v_N_log_log_mask, true_densities, abs_delta_N, plot_folder, parent_nuc)
 
             fractional_errors = np.full(true_densities.shape, np.nan)
             fractional_errors[del_N_by_N_v_N_lin_mask] = (
                 delta_N[del_N_by_N_v_N_lin_mask] / true_densities[del_N_by_N_v_N_lin_mask]
             )
-
-            fig, ax = plt.subplots(figsize=(10, 8))
-            ax.scatter(
-                true_densities[del_N_by_N_v_N_lin_mask],
-                fractional_errors[del_N_by_N_v_N_lin_mask],
-                s=5,
-                alpha=0.3
-            )
-            ax.axhline(0, color="black", linewidth=1)
-            ax.set_xlabel("True Number Density (atoms/cm³)")
-            ax.set_ylabel("Signed Fractional Error")
-            ax.set_title(f"KNN Signed Fractional Error vs True Number Density: {parent_nuc}")
-            fig.tight_layout()
-            fig.savefig(f"{plot_folder}/{parent_nuc}_fractional_error_linear.png", dpi=300)
-            plt.close(fig)
+            if np.any(del_N_by_N_v_N_lin_mask):
+                plot_sgn_frac_err_v_n(true_densities, fractional_errors, del_N_by_N_v_N_lin_mask, plot_folder, parent_nuc)
 
             abs_fractional_errors = np.full(true_densities.shape, np.nan)
             abs_fractional_errors[del_N_by_N_v_N_lin_mask] = (
@@ -117,47 +250,18 @@ def main():
             )
 
             if np.any(del_N_by_N_v_N_log_log_mask):
-                fig, ax = plt.subplots(figsize=(10, 8))
-                ax.scatter(
-                    true_densities[del_N_by_N_v_N_log_log_mask],
-                    abs_fractional_errors[del_N_by_N_v_N_log_log_mask],
-                    s=5,
-                    alpha=0.3
-                )
-                ax.set_xscale("log")
-                ax.set_yscale("log")
-                ax.set_xlabel("True Number Density (atoms/cm³)")
-                ax.set_ylabel("Absolute Fractional Error")
-                ax.set_title(
-                    f"KNN Absolute Fractional Error vs True Number Density (Log-Log): {parent_nuc}"
-                )
-                fig.tight_layout()
-                fig.savefig(f"{plot_folder}/{parent_nuc}_fractional_error_log.png", dpi=300)
-                plt.close(fig)
+                plot_abs_frac_err_v_n(true_densities, abs_fractional_errors, del_N_by_N_v_N_log_log_mask, plot_folder, parent_nuc)
 
-            # --------------------------- cumulative fraction ecdf begins    
+
+            # Begin cumulative fraction ECDF    
 
             finite_abs_delta_N = abs_delta_N[np.isfinite(abs_delta_N)]
 
             if len(finite_abs_delta_N) == 0:
                 print(f"{parent_nuc} : No valid absolute errors to plot.", file=knn_file)
             else:
-                abs_delta_N_result = ecdf(finite_abs_delta_N)
+                plot_unmasked_abs_del_N_ecdf(finite_abs_delta_N, plot_folder, parent_nuc)
 
-                plt.figure()
-                plt.step(
-                    abs_delta_N_result.cdf.quantiles,
-                    abs_delta_N_result.cdf.probabilities,
-                    where="post"
-                )
-                plt.xlabel("Absolute Error |Predicted Density - True Density|")
-                plt.ylabel("Cumulative Fraction")
-                plt.title("ECDF of Absolute Errors")
-                plt.grid(True)
-                plt.tight_layout()
-                plt.savefig(f"{plot_folder}/{parent_nuc}_unmasked_absolute_delta_N_ecdf.png", dpi=300, bbox_inches="tight")
-                plt.show()
-                plt.close()
             delta_N_mask = ((abs_delta_N > 0) & np.isfinite(abs_delta_N))
             abs_delta_N_masked = abs_delta_N[delta_N_mask]
 
@@ -171,54 +275,21 @@ def main():
             if len(abs_delta_N_masked) == 0:
                 print(f"{parent_nuc}: no positive absolute errors; skipping masked ECDF.", file=knn_file)
             else:
-                abs_delta_N_result_masked = ecdf(abs_delta_N_masked)
+                plot_masked_abs_del_N_ecdf(abs_delta_N_masked, plot_folder, parent_nuc)
 
-                plt.figure()
-                plt.step(
-                    abs_delta_N_result_masked.cdf.quantiles,
-                    abs_delta_N_result_masked.cdf.probabilities,
-                    where="post"
-                )
-                plt.xscale("log")
-                plt.yscale("log")
-                plt.xlabel("Absolute Error |Predicted Density - True Density|")
-                plt.ylabel("Cumulative Fraction")
-                plt.title("Masked ECDF of Absolute Errors")
-                plt.grid(True)
-                plt.tight_layout()
-                plt.savefig(f"{plot_folder}/{parent_nuc}_masked_absolute_delta_N_ecdf.png", dpi=300, bbox_inches="tight")
-                plt.show()
-                plt.close()
             
             frac_delta_N_masked = abs_delta_N[del_N_v_N_log_log_mask] / true_densities[del_N_v_N_log_log_mask]
 
             if len(frac_delta_N_masked) == 0:
                 print(f"{parent_nuc}: No valid masked fractional errors to plot.", file=knn_file)
             else:
-
-                frac_delta_N_result_masked = ecdf(frac_delta_N_masked)
-
-                plt.figure()
-                plt.step(
-                    frac_delta_N_result_masked.cdf.quantiles,
-                    frac_delta_N_result_masked.cdf.probabilities,
-                    where="post"
-                )
-                plt.xscale("log")
-                plt.yscale("log")
-                plt.xlabel("Fractional Error |Predicted Density - True Density|")
-                plt.ylabel("Cumulative Fraction")
-                plt.title("Masked ECDF of Fractional Errors")
-                plt.grid(True)
-                plt.tight_layout()
-                plt.savefig(f"{plot_folder}/{parent_nuc}_masked_fractional_delta_N_ecdf.png", dpi=300, bbox_inches="tight")
-                plt.show()
-                plt.close()
+                plot_frac_del_N_masked_ecdf(frac_delta_N_masked, plot_folder, parent_nuc)
 
 
-            # ------------------------------ cumulative fraction ecdf ends
+            # End cumulative fraction ECDF
 
-            # ----------------------------- number density-weighted ecdf begins
+            # Begin number-density weighted ECDF
+            
             if np.any(del_N_v_N_log_log_mask):
                 sort_abs_delta_N_indices = np.argsort(
                     abs_delta_N[del_N_v_N_log_log_mask]
@@ -228,22 +299,7 @@ def main():
 
                 cumulative_density = np.cumsum(sorted_densities)
                 cumulative_fraction = cumulative_density / np.sum(sorted_densities)
-
-                plt.figure()
-                plt.step(sorted_errors, cumulative_fraction, where="post")
-                plt.xscale("log")
-                plt.yscale("log")
-                plt.xlabel("Absolute Error |Predicted Density - True Density|")
-                plt.ylabel("Cumulative Fraction of Total Number Density")
-                plt.title(f"Number-Density-Weighted ECDF: {parent_nuc}")
-                plt.grid(True, which="both")
-                plt.tight_layout()
-                plt.savefig(
-                    f"{plot_folder}/{parent_nuc}_abs_delta_N_density_weighted_ecdf_loglog.png",
-                    dpi=300,
-                    bbox_inches="tight"
-                )
-                plt.close()
+                plot_num_dens_weighted_ecdf_v_abs_err(sorted_errors, cumulative_fraction, parent_nuc, plot_folder)
             else:
                 print(
                     f"{parent_nuc}: No valid entries for absolute error density-weighted ECDF.",
@@ -256,45 +312,21 @@ def main():
                 sorted_frac_delta_N_densities = true_densities[del_N_by_N_v_N_log_log_mask][sort_frac_delta_N_indices]
 
                 cumulative_frac_delta_N_density = np.cumsum(sorted_frac_delta_N_densities)
-                cumulative_frac_delta_N_fraction = cumulative_frac_delta_N_density / np.sum(sorted_frac_delta_N_densities) #fraction calculated with only nonzero entries in denominator
-
-                plt.figure()
-                plt.step(sorted_frac_delta_N_errors, cumulative_frac_delta_N_fraction, where="post")
-                plt.xscale("log")
-                plt.yscale("log")
-                plt.xlabel("Fractional Error |Predicted Density - True Density| / True Density")
-                plt.ylabel("Cumulative Fraction of Total Number Density")
-                plt.title("Number-Density-Weighted ECDF (Log-Log)")
-                plt.grid(True, which="both")
-                plt.tight_layout()
-                plt.savefig(f"{plot_folder}/{parent_nuc}_frac_delta_N_density_weighted_ecdf_loglog.png", dpi=300, bbox_inches="tight")
-                plt.show()
-                plt.close()
+                #fraction calculated with only nonzero entries in denominato
+                cumulative_frac_delta_N_fraction = cumulative_frac_delta_N_density / np.sum(sorted_frac_delta_N_densities)
+                plot_num_dens_weighted_ecdf_v_abs_frac_err(sorted_frac_delta_N_errors, cumulative_frac_delta_N_fraction, plot_folder,
+                                               parent_nuc)
             else:
                 print(
                     f"{parent_nuc}: No valid entries for fractional error density-weighted ECDF.",
                     file=knn_file
                 )
 
-            # ---------------------------- number density-weighted ecdf ends
+            # End number density-weighted ECDF
             
-            fig, ax = plt.subplots(figsize=(10, 8))
-            ax.scatter(true_densities, delta_N, s=5, alpha=0.3)
-            ax.set_xlabel("True Number Density (atoms/cm³)")
-            ax.set_ylabel(r"Error $\Delta$N (atoms/cm³)")
-            ax.set_title(f"KNN Prediction Error vs True Number Density: {parent_nuc}")
-            fig.tight_layout()
-            fig.savefig(f"{plot_folder}/{parent_nuc}_delta_N_vs_N.png", dpi=300)
-            plt.close(fig)
+            plot_err_v_num_dens(true_densities, delta_N, parent_nuc, plot_folder)
 
-            fig, ax = plt.subplots(figsize=(10, 8))
-            ax.scatter(true_densities, abs_delta_N, s=5, alpha=0.3)
-            ax.set_xlabel("True Number Density (atoms/cm³)")
-            ax.set_ylabel(r"Absolute Error $\Delta$N (atoms/cm³)")
-            ax.set_title(f"Absolute KNN Prediction Error vs True Number Density: {parent_nuc}")
-            fig.tight_layout()
-            fig.savefig(f"{plot_folder}/{parent_nuc}_abs_delta_N_vs_N.png", dpi=300)
-            plt.close(fig)
+            plot_abs_err_v_num_dens(true_densities, abs_delta_N, parent_nuc, plot_folder)
 
     diff = list(set(parent_nucs) - set(available_parent_nucs))
     print(diff)

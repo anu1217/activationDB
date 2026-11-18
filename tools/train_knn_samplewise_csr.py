@@ -98,19 +98,12 @@ def make_training_features_outputs_csr(
     immediately converted to one CSR row, and then released. No dense array
     with a sample dimension is created for the targets.
     """
-    child_to_index = {name: i for i, name in enumerate(child_nucs)}
-    parent_to_index = {name: i for i, name in enumerate(parent_nucs)}
-    if not child_to_index or not parent_to_index:
-        raise ValueError("child_nucs and parent_nucs must be nonempty.")
-    if len(child_to_index) != len(child_nucs) or len(parent_to_index) != len(parent_nucs):
-        raise ValueError("child_nucs and parent_nucs must not contain duplicates.")
-    sample_ids = sorted(partial_training_df["run_lbl"].unique().to_list())
-    if not sample_ids:
-        raise ValueError("No samples were found in partial_training_df.")
-    features, sparse_rows = [], []
-    spectrum_cache = {}
+    sample_ids = partial_training_df["run_lbl"].unique().to_list()
 
-    for sample_number, sample_id in enumerate(sample_ids, start=1):
+    features, sparse_rows = [], []
+
+    # for sample_number, sample_id in enumerate(sample_ids, start=1):
+    for sample_id in sample_ids:
         sample_df = partial_training_df.filter(pl.col("run_lbl") == sample_id)
         dense_matrix = np.zeros((len(child_nucs), len(parent_nucs)), dtype=np.float64)
         input_metadata = None
@@ -119,42 +112,28 @@ def make_training_features_outputs_csr(
             metadata = (row["t_irr"], row["avg_flux_mag"], row["flux_spec_shape_id"])
             if input_metadata is None:
                 input_metadata = metadata
-            elif metadata != input_metadata:
-                raise ValueError(f"Sample {sample_id!r} has inconsistent input features.")
-            density = float(row["num_dens_(atoms/cm3)"])
-            if not np.isfinite(density):
-                raise ValueError(f"Sample {sample_id!r} contains a nonfinite target.")
+
+            density = row["num_dens_(atoms/cm3)"]
+
             dense_matrix[
-                child_to_index[row["nuclide"]],
-                parent_to_index[row["block_name"]],
+                child_nucs.index(row["nuclide"]),
+                parent_nucs.index(row["block_name"])
             ] = density
 
-        t_irr, avg_flux_mag, spectrum_id = input_metadata
-        if spectrum_id not in spectrum_cache:
-            spectrum = dict_df[spectrum_id]
-            if isinstance(spectrum, str):
-                spectrum = json.loads(spectrum)
-            spectrum = np.asarray(spectrum, dtype=np.float64)
-            if spectrum.ndim != 1 or not len(spectrum):
-                raise ValueError("Each flux spectrum must be a nonempty 1-D sequence.")
-            spectrum_cache[spectrum_id] = spectrum
+        t_irr, avg_flux_mag, flux_spec_shape_id = input_metadata
+
         sample_features = np.asarray(
-            [t_irr, avg_flux_mag, *spectrum_cache[spectrum_id]], dtype=np.float64,
+            [t_irr, avg_flux_mag, *np.asarray(json.loads(dict_df[flux_spec_shape_id]), dtype=np.float64)], dtype=np.float64,
         )
-        if not np.isfinite(sample_features).all():
-            raise ValueError(f"Sample {sample_id!r} contains nonfinite input features.")
-        if features and sample_features.shape != features[0].shape:
-            raise ValueError("Flux spectra must use the same number of energy bins.")
+
         features.append(sample_features)
 
         # Convert now, rather than storing dense_matrix in an output list.
         sparse_rows.append(csr_matrix(dense_matrix.reshape(1, -1)))
         del dense_matrix
         if progress:
-            print(f"\rPreparing samples: {sample_number}/{len(sample_ids)}", end="", flush=True)
+            print(f"Preparing sample with run_lbl: {sample_id}", flush=True)
 
-    if progress:
-        print()
     return np.stack(features), vstack(sparse_rows, format="csr"), sample_ids
 
 
@@ -185,8 +164,8 @@ def parse_args(argv=None):
         "--model_training_yaml", "--model-training-yaml", "-t", required=True,
         help="YAML containing db_name, filter_str, batch_size, child_nucs, and parent_nucs.",
     )
-    parser.add_argument("--output-dir", "-o", default="knn_training_output_csr")
-    parser.add_argument("--cv", type=int, default=5, help="Cross-validation folds (default: 5).")
+    parser.add_argument("--output-dir", "-o", default="csr_knn_training_output")
+    parser.add_argument("--cv", type=int, default=5, help="GridSearch cross-validation folds (default: 5).")
     parser.add_argument(
         "--use_stored_df", "--use-stored-df", "-u", action="store_true",
         help="Use an existing extracted CSV; the database still supplies flux spectra.",
@@ -225,39 +204,11 @@ def _write_cv_results(search, destination):
 def main(argv=None):
     """Load configuration/data, prepare CSR targets, train, and save outputs."""
     args = parse_args(argv)
-    config_path = Path(args.model_training_yaml).expanduser().resolve()
-    with config_path.open("r", encoding="utf-8") as config_file:
-        config = yaml.safe_load(config_file)
-    if not isinstance(config, dict):
-        raise ValueError("The training YAML must contain a mapping of configuration keys.")
-    required = {"db_name", "filter_str", "batch_size", "child_nucs", "parent_nucs"}
-    missing = sorted(required.difference(config))
-    if missing:
-        raise ValueError(f"Missing YAML keys: {', '.join(missing)}")
-    if not isinstance(config["db_name"], str) or not config["db_name"]:
-        raise ValueError("db_name must be a nonempty database path string.")
-    if not isinstance(config["filter_str"], str):
-        raise ValueError("filter_str must be an SQL LIKE-pattern string.")
+    with open(Path(args.model_training_yaml).expanduser().resolve(), 'r') as yaml_file:
+        config = yaml.safe_load(yaml_file)
     batch_size = config["batch_size"]
-    if isinstance(batch_size, bool) or not isinstance(batch_size, int) or batch_size < 1:
-        raise ValueError("batch_size must be a positive integer.")
-    for label in ("child_nucs", "parent_nucs"):
-        entries = config[label]
-        if not isinstance(entries, list) or not entries or not all(isinstance(x, str) for x in entries):
-            raise ValueError(f"{label} must be a nonempty list of nuclide-name strings.")
-        if len(set(entries)) != len(entries):
-            raise ValueError(f"{label} must not contain duplicate nuclide names.")
-    if args.cv < 2:
-        raise ValueError("--cv must be at least 2.")
-    db_path = Path(config["db_name"]).expanduser()
-    if not db_path.is_absolute():
-        db_path = config_path.parent / db_path
-    db_path = db_path.resolve()
-    if not db_path.is_file():
-        raise FileNotFoundError(f"Database not found: {db_path}")
+    db_path = config['db_name']
 
-    # Keep SQL loading in the original helper; it must be available beside us
-    # or on PYTHONPATH. Imports remain optional for the preparation-only API.
     try:
         import extract_sql_data
     except ModuleNotFoundError as error:
@@ -268,47 +219,44 @@ def main(argv=None):
         ) from error
 
     children, parents = config["child_nucs"], config["parent_nucs"]
-    print(f"Loading training data from {db_path}", flush=True)
-    connection = sqlite3.connect(str(db_path))
+    connection = sqlite3.connect(db_path)
     try:
-        flux_lookup = extract_sql_data.make_dict_from_small_table(connection)
+        flux_table = extract_sql_data.make_dict_from_small_table(connection)
         if args.use_stored_df:
             frame = pl.read_csv(
-                Path(args.stored_df).expanduser(),
+                args.stored_df,
                 schema_overrides={
-                    "nuclide": pl.Enum(children), "run_lbl": pl.Categorical,
-                    "block_name": pl.Enum(parents), "flux_spec_shape_id": pl.UInt8,
+                    "nuclide": pl.Enum(children), 
+                    "run_lbl": pl.Categorical,
+                    "block_name": pl.Enum(parents), 
+                    "flux_spec_shape_id": pl.UInt8,
                 },
             )
         else:
-            chunks = list(extract_sql_data.make_dfs_from_num_dens_table(
+            chunks = extract_sql_data.make_dfs_from_num_dens_table(
                 connection, config["filter_str"], batch_size, children, parents,
-            ))
-            if not chunks:
-                raise ValueError("No training rows matched filter_str.")
+            )
             frame = pl.concat(chunks)
             del chunks
     finally:
         connection.close()
-    print(f"Loaded {frame.height:,} database rows; preparing sample-wise CSR targets.", flush=True)
     X_train, Y_csr, sample_ids = make_training_features_outputs_csr(
-        frame, flux_lookup, children, parents, progress=True,
+        frame, flux_table, children, parents, progress=True,
     )
     # The raw SQL DataFrame is no longer needed during cross-validation.
-    del frame, flux_lookup
+    del frame, flux_table
     target_bytes = int(Y_csr.data.nbytes + Y_csr.indices.nbytes + Y_csr.indptr.nbytes)
     print(
         f"Prepared X={X_train.shape}, CSR targets={Y_csr.shape}, "
         f"nonzeros={Y_csr.nnz:,}, CSR storage={target_bytes / 2**30:.3f} GiB.",
         flush=True,
     )
-    print("Selecting KNN hyperparameters; final refit will use all training samples.", flush=True)
     search = make_knn_search(cv=args.cv, verbose=2)
     search.fit(X_train, Y_csr)
 
     output_dir = Path(args.output_dir).expanduser().resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
-    model_path = output_dir / "knn_model_csr.joblib"
+    model_path = output_dir / "knn_model.joblib"
     joblib.dump({
         "model": search.best_estimator_,
         "sample_ids": sample_ids,
@@ -318,7 +266,7 @@ def main(argv=None):
         "best_cv_neg_mean_squared_error": float(search.best_score_),
         "sklearn_version": sklearn.__version__,
     }, model_path)
-    _write_cv_results(search, output_dir / "knn_cv_results_csr.csv")
+    _write_cv_results(search, output_dir / "knn_cv_results.csv")
     summary = {
         "n_samples": len(sample_ids), "n_features": X_train.shape[1],
         "n_outputs": Y_csr.shape[1], "target_shape": [len(children), len(parents)],
@@ -330,7 +278,7 @@ def main(argv=None):
         "final_refit_samples": len(sample_ids),
         "sklearn_version": sklearn.__version__,
     }
-    with (output_dir / "knn_training_summary_csr.json").open("w", encoding="utf-8") as output:
+    with (output_dir / "knn_training_summary.json").open("w", encoding="utf-8") as output:
         json.dump(summary, output, indent=2, default=_json_default)
         output.write("\n")
     print(f"Best settings: {search.best_params_}", flush=True)

@@ -254,7 +254,7 @@ class SparseTargetKNNRegressor(RegressorMixin, BaseEstimator):
             minimum = distances.min(axis=1, keepdims=True)
             weights = np.divide(
                 minimum, distances, out=np.zeros_like(distances),
-                where=~zero_distance,
+                where=(zero_distance==False),
             )
             exact_match = zero_distance.any(axis=1)
             weights[exact_match] = zero_distance[exact_match]
@@ -305,25 +305,3 @@ class SparseTargetKNNRegressor(RegressorMixin, BaseEstimator):
     def score(self, X, y):
         """Return negative MSE over all coordinates (not R-squared)."""
         return sparse_neg_mean_squared_error(self, X, y)
-
-
-if __name__ == "__main__":
-    # Small, reproducible smoke example; replace with real arrays for training.
-    from sklearn.metrics import mean_squared_error
-    from sklearn.neighbors import KNeighborsRegressor
-
-    rng = np.random.default_rng(106)
-    X_demo = rng.normal(size=(60, 6))
-    Y_demo = rng.random(size=(60, 40))
-    Y_demo[rng.random(Y_demo.shape) < 0.92] = 0.0
-    X_query = rng.normal(size=(5, 6))
-    sparse_model = SparseTargetKNNRegressor(n_neighbors=5, weights="distance")
-    sparse_model.fit(X_demo, sparse.csr_matrix(Y_demo))
-    actual = sparse_model.predict(X_query, output_format="dense")
-    reference = KNeighborsRegressor(n_neighbors=5, weights="distance").fit(
-        X_demo, Y_demo,
-    ).predict(X_query)
-    np.testing.assert_allclose(actual, reference, rtol=1e-12, atol=1e-12)
-    print("Sparse-target predictions match dense KNN.")
-    print("Maximum absolute difference:", np.max(np.abs(actual - reference)))
-    print("Example MSE:", mean_squared_error(reference, actual))
